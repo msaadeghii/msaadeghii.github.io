@@ -18,8 +18,12 @@ selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
+<style type="text/css"> body{ font-size: 11pt; } </style>
+<div style="text-align: justify">
+I am a researcher with the <a href="https://team.inria.fr/multispeech/">Multispeech team</a> at <a href="https://www.inria.fr/en">Inria</a>, Nancy - Grand Est, France, since November 2020. My current research focuses on robust audio-visual speech processing (enhancement & separation), with an emphasis on combining the expressive power of deep neural networks with statistical and probabilistic machine learning techniques, e.g., using deep generative models.
+</div>
 
-Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
-
-Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them.
+<div style="text-align: justify">
+I received my PhD from <a href="https://en.sharif.edu">Sharif University of Technology</a>, Tehran, Iran, in April 2018. From August 2018 to October 2020, I was a postdoctoral researcher with the <a href="https://team.inria.fr/perception/">Perception team</a> (now, <a href="https://team.inria.fr/robotlearn/">RobotLearn team</a>) at Inria, Grenoble, France, working with <a href="https://team.inria.fr/perception/team-members/radu-patrice-horaud/">Radu Horaud</a> and <a href="http://xavirema.eu">Xavier Alameda-Pineda</a>. Prior to that, I was a visiting PhD scholar at the Information Science and
+Engineering Department, <a href="https://www.kth.se/en">Royal Institute of Technology (KTH)</a>, Stockholm, Sweden, and later, a research engineer at the Automatic Control Department.
+</div>
