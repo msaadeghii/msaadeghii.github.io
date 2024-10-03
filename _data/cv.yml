@@ -2,96 +2,71 @@
   type: map
   contents:
     - name: Full Name
-      value: Albert Einstein
-    - name: Date of Birth
-      value: 14th March 1879
-    - name: Languages
-      value: English, German
+      value: Mostafa SADEGHI
+    - name: Position
+      value: Researcher (Inria Starting Faculty Position)
+    - name: Institution
+      value: Inria
+    - name: Team
+      value: <a href="https://team.inria.fr/multispeech//">MULTISPEECH</a>
+    - name: Homepage
+      value: https://msaadeghii.github.io/
+    - name: Email
+      value: mostafa.sadeghi@inria.fr
+    - name: Address
+      value: Office C136, 615 Rue du Jardin-Botanique, 54600 Villers-l`es-Nancy, France
 
 - title: Education
   type: time_table
   contents:
-    - title: PhD
-      institution: University of Zurich, Zurich, Switzerland
-      year: 1905
+    - title: Ph.D.
+      institution: Sharif University of Technology, Tehran, Iran
+      year: 2013 – 2018
       description:
-        - Description 1.
-        - Description 2.
-        - title: Description 3.
-          contents:
-            - Sub-description 1.
-            - Sub-description 2.
-    - title: Federal teaching diploma
-      institution: Eidgenössische Technische Hochschule, Zurich, Switzerland
-      year: 1900
+        - Sparse Recovery and Dictionary Learning based on Proximal Methods in Optimization
+        - Advised by Prof. Massoud Babaie-Zadeh
+    - title: M.Sc.
+      institution: Sharif University of Technology, Tehran, Iran
+      year: 2010 – 2012
       description:
-        - Description 1.
-        - Description 2.
+        - Sparse Representation and its Application in Image Denoising
+        - Advised by Prof. Massoud Babaie-Zadeh
+    - title: B.Sc.
+      institution: Ferdowsi University of Mashhad, Mashhad, Iran
+      year: 2006 – 2010
 
 - title: Experience
   type: time_table
   contents:
-    - title: Professor of Theoretical Physics
-      institution: Institute for Advanced Study, Princeton University
-      year: 1933 - 1955
-      description:
-        - Description 1.
-        - Description 2.
-        - title: Description 3.
-          contents:
-            - Sub-description 1.
-            - Sub-description 2.
-    - title: Visiting Professor
-      institution: California Institute of Technology, Pasadena, California, US
-      year: 1933
-      description:
-        - Description 1.
-        - Description 2.
+    - title: Researcher (Inria Starting Faculty Position)
+      institution: MULTISPEECH team, Inria Nancy - Grand Est
+      year: 2020 - Current
+    - title: Postdoctoral researcher
+      institution: PERCEPTION team, Inria Grenoble Rhône-Alpes, France
+      year: 2018 – 2020
+    - title: Research engineer
+      institution: Automatic Control Department, Royal Institute of Technology (KTH), Stockholm, Sweden
+      year: 2017 – 2017
+    - title: Visiting Ph.D. scholar
+      institution: Information Science and Engineering Department, Royal Institute of Technology (KTH), Stockholm, Sweden
+      year: 2016 – 2017
 
-    - title: Director
-      institution: Kaiser Wilhelm Institute for Physics, Berlin, Germany.
-      year: 1917-1933
-
-    - title: Professor of Theoretical Physics
-      institution: Karl-Ferdinand University, Prague, Czechoslovakia
-      year: 1911 - 1917
-      description:
-
-    - title: Associate Professor of Theoretical Physics
-      institution: University of Zurich, Zurich, Switzerland
-      year: 1909 - 1911
-
-- title: Open Source Projects
-  type: time_table
-  contents:
-    - title: <a href="https://github.com/alshedivat/al-folio">al-folio</a>
-      year: 2015-now
-      description: A beautiful, simple, clean, and responsive Jekyll theme for academics.
-
-- title: Honors and Awards
-  type: time_table
-  contents:
-    - year: 1921
-      items:
-        - Nobel Prize in Physics
-        - Matteucci Medal
-    - year: 2029
-      items:
-        - Max Planck Medal
+# - title: Honors and Awards
+#   type: time_table
+#   contents:
+#     - year: 2010 - 2017
+#       items:
+#         - Iran National Science Foundation (INSF) Ph.D. financial support 2016
+#         - Full travel grant (CHESS project), 13th LVA/ICA workshop, Grenoble, France 2017
+#         - Visiting research scholarship, Information Science and Engineering Department, Royal Institute of Technology (KTH), Stockholm, Sweden 2016
+#         - 1-year National Elite Foundation Ph.D. fellowships 2015-2017
 
 - title: Academic Interests
   type: nested_list
   contents:
-    - title: Topic 1.
+    - title: Research Interests
       items:
-        - Description 1.
-        - Description 2.
-    - title: Topic 2.
-      items:
-        - Description 1.
-        - Description 2.
-
-- title: Other Interests
-  type: list
-  contents:
-    - <u>Hobbies:</u> Hobby 1, Hobby 2, etc.
+        - Statistical signal and image processing
+        - Deep generative models
+        - Unsupervised audio-visual speech enhancement
+        - Bayesian inference and probabilistic machine learning
