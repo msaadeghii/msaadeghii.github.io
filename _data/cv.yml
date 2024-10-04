@@ -6,7 +6,7 @@
     - name: Position
       value: Researcher (Inria Starting Faculty Position)
     - name: Institution
-      value: Inria
+      value: <a href="https://inria.fr/en">Inria</a>
     - name: Team
       value: <a href="https://team.inria.fr/multispeech//">MULTISPEECH</a>
     - name: Homepage
