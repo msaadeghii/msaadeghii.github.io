@@ -1,0 +1,39 @@
+Host *
+        StrictHostKeyChecking no
+        HashKnownHosts no
+
+Host g5k
+	User [username]
+	Hostname access.grid5000.fr
+	ForwardAgent yes
+	ServerAliveInterval 120
+	IdentityFile ~/.ssh/id_rsa_g5k
+
+Host *.g5k
+	User [username]
+	ProxyCommand ssh g5k -W "`basename %h .g5k`:%p"
+	ForwardAgent yes
+	ServerAliveInterval 120
+	IdentityFile ~/.ssh/id_rsa_g5k
+
+Host access_nancy
+        HostName access.nancy.grid5000.fr
+        User [username]
+        Port 22
+        IdentityFile ~/.ssh/id_rsa_g5k
+        ForwardAgent no
+Host access
+        HostName access.grid5000.fr
+        User [username]
+        Port 22
+        IdentityFile ~/.ssh/id_rsa_g5k
+        ForwardAgent no
+Host *.user
+        User [username]
+        ProxyCommand ssh access "nc -q 0 `basename %h .user` %p"
+        ForwardAgent no
+
+Host gitlab.inria.fr
+	HostName gitlab.inria.fr
+	User [username]
+	IdentityFile ~/.ssh/id_rsa_gitlab
