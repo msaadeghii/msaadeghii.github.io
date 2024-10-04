@@ -16,7 +16,7 @@ horizontal: false
 </h2>
 
 <div style="text-align: center;">
-<img src="/files/av_se.png" alt="Audio-visual speech enhancement" width="500" height="400">
+<img src="/files/av_se.png" alt="Audio-visual speech enhancement" width="600" height="200">
 </div>
 
 <div style="text-align: justify">
