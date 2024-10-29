@@ -1,0 +1,361 @@
+---
+layout: compress
+title: ""
+permalink: /multispeech.html
+author_profile: false
+---
+
+{% include base_path %}
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>multispeech.html</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html">
+<h1 id="getting-started-in-multispeech">Getting started in Multispeech</h1>
+<p>The aim of this document is to provide some practical and technical information for new members of the <a href="https://team.inria.fr/multispeech/">Multispeech team</a>. In addition to the information provided here, you can consult the dedicated <a href="https://q2a.loria.fr/">Q&amp;A</a> platform to ask your diverse questions, or to help others by answering their questions, if possible.</p>
+<p>Also, check different channels of Multispeech on <a href="https://mattermost.inria.fr/multispeech/">Mattermost</a>. In this platform, you can directly communicate with others, ask/answer questions, share your interesting stuffs, etc.</p>
+<blockquote>
+<p>For more detailed information on the team and Inria/Loria life, we highly recommend you to explore <a href="https://gitlab.inria.fr/multispeech_wide/welcome">Welcome to Multispeech!</a> documentation on GitLab, especially <a href="https://gitlab.inria.fr/multispeech_wide/welcome/-/blob/master/doc/source/get_started.md">this section</a>.</p>
+</blockquote>
+
+<h2 id="content">Content</h2>
+<p><strong><a href="#it-infrastructure">IT infrastructure</a></strong></p>
+<ul>
+<li><a href="#professional-email">Professional Email</a></li>
+<li><a href="#access-from-outside-loria">Access from outside Loria</a></li>
+<li><a href="#wifi">WiFi</a></li>
+<li><a href="#git">Git</a></li>
+<li><a href="#shared-disk-space">Shared disk space</a></li>
+</ul>
+<p><strong><a href="#computational-cluster">Computational cluster</a></strong></p>
+<ul>
+<li><a href="#setting-up-conda">Setting up Conda</a></li>
+<li><a href="#reserving-nodes-on-grid5k">Reserving nodes on Grid5k</a></li>
+<li><a href="#file-transfer">File transfer</a></li>
+<li><a href="#job-monitoring">Job monitoring</a></li>
+<li><a href="#datasets">Datasets</a></li>
+<li><a href="#setting-up-jupyter-notebook">Setting up Jupyter notebook</a></li>
+<li><a href="#visual-studio-code-vsc-for-remote-code-editing-and-notebooks-running">Visual Studio Code (VSC) for remote code editing and notebooks running</a></li>
+<li><a href="#other-grid5000-resources">Other Grid5000 resources</a></li>
+</ul>
+<h2 id="it-infrastructure">IT infrastructure</h2>
+<p>The IT Portal is <a href="http://infodoc.loria.fr/">here</a>. For more details, you can also visit this <a href="https://multispeech_wide.gitlabpages.inria.fr/welcome/doc/html/">website</a>.</p>
+<h3 id="professional-email">Professional Email</h3>
+<p>You can access your Inria email account following this <a href="https://zimbra.inria.fr/">website</a>.</p>
+<blockquote>
+<p>Remember to always use your Inria email instead of a personal one.</p>
+</blockquote>
+<h3 id="access-from-outside-loria">Access from outside Loria</h3>
+<ul>
+<li>By ssh (for data) following this <a href="http://infodoc.loria.fr/display/SUPPORT/SSH">website</a> (cf. also the example SSH config file available <a href="https://msaadeghii.github.io/files/config">here</a>).</li>
+<li>By VPN (for websites, downloading papers, etc.) following this <a href="http://infodoc.loria.fr/display/SUPPORT/VPN">website</a>.</li>
+</ul>
+<h3 id="wifi">WiFi</h3>
+<p>When you are outside your office but still at Loria, you can follow <a href="http://infodoc.loria.fr/display/SUPPORT/Wifi+Inria-Interne">these instructions</a> to connect to the WiFi.</p>
+<h3 id="git">Git</h3>
+<p>You should use <a href="https://gitlab.inria.fr/">Inria GitLab</a> to host/share your codes. You can create a new group associated with your project. This repo will host all the codes (Python and LaTeX) that you will develop (but not data or PDFs, which are not meant to be stored in a Git repo).</p>
+<h3 id="shared-disk-space">Shared disk space</h3>
+<ul>
+<li>
+<p>On the lab’s network:<br>
+<code>/local/multispeech_ge/corpus</code> for original corpora.<br>
+<code>/local/multispeech_ge/calcul</code> for intermediate/final computation results.<br>
+<code>/local/multispeech_ge/congres</code> for conference proceedings.<br>
+These three disk spaces should be mounted on your laptop/desktop.</p>
+</li>
+<li>
+<p>On <a href="https://www.grid5000.fr/w/Group_Storage">Grid’5000 group storage</a>:<br>
+<code>/srv/storage/talc@storage4.nancy.grid5000.fr/</code><br>
+<code>/srv/storage/talc2@talc-data.nancy/</code><br>
+<code>/srv/storage/talc3@storage4.nancy.grid5000.fr/</code></p>
+</li>
+</ul>
+<p>The three disk spaces are structured similarly to ⁣<code>/local/multispeech_ge</code> but there is much more space available.</p>
+<blockquote>
+<p>Create your own folder in one of the <code>multispeech/calcul/users/</code> directories in order to store the intermediate/final results of your experiments. See the following section for more details.<br>
+Remember to always monitor the stored data and remove your useless data.</p>
+</blockquote>
+<h2 id="computational-cluster">Computational cluster</h2>
+<p>We do our experiments on <a href="https://www.grid5000.fr/w/Grid5000:Home">Grid’5000</a>, which is a large-scale and flexible testbed for experiment-driven research, with powerful GPU and CPU machines. Here, we provide a step-by-step guide to get started with Grid’5000.</p>
+<blockquote>
+<p>Please also check <a href="https://gitlab.inria.fr/multispeech_wide/welcome/-/blob/master/doc/source/tutorials/all_systems/g5k_quick_start.md">this useful doc</a> if you need more detailed information.</p>
+</blockquote>
+<ol>
+<li>
+<p>Create an account <a href="https://www.grid5000.fr/w/Special:G5KRequestAccountUMS">here</a> (enter Multispeech for “Group Granting Access”).</p>
+</li>
+<li>
+<p>Set-up SSH key pairs. See <a href="https://www.grid5000.fr/w/SSH">here</a> on how to do that.</p>
+</li>
+<li>
+<p>Paste the public key’s content (run <code>cat ~/.ssh/id_rsa.pub</code>) in your account space on Grid5000 (<a href="https://api.grid5000.fr/stable/users/">manage account</a> -&gt; SSH keys).</p>
+</li>
+<li>
+<p>Create a config file for easy connecting (see the example SSH config file available <a href="https://msaadeghii.github.io/files/config">here</a>) and put it in <code>~/.ssh</code>; you’ll also need to locate your generated public and private keys there.</p>
+</li>
+<li>
+<p>Simply connect to the Nancy workstation by: <code>ssh nancy.g5k</code>.</p>
+</li>
+</ol>
+<h3 id="setting-up-conda">Setting up Conda</h3>
+<p>Once you are done with the previous set-up, you can create a folder with your username at <code>/srv/storage/talc3@storage4.nancy.grid5000.fr/multispeech/calcul/users</code>. Then, follow the below instructions, while being connected to the cluster, to set up the conda environment for running your codes:</p>
+<ol>
+<li>
+<p>Install anaconda by first downloading an appropriate version, e.g.:<br>
+<code>wget https://repo.anaconda.com/archive/Anaconda3-2020.11-Linux-x86_64.sh</code>.<br>
+Then, install it using <code>bash Anaconda3-2020.11-Linux-x86_64.sh</code>.</p>
+</li>
+<li>
+<p>Activate the conda environment: <code>source ~/.bashrc</code>.</p>
+</li>
+<li>
+<p>Create a virtual environment using conda: <code>conda create --name venv</code>. See this <a href="https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html">website</a> for more details.</p>
+</li>
+<li>
+<p>Activate the virtual environment: <code>conda activate venv</code>.</p>
+</li>
+<li>
+<p>Install PyTorch. You can follow the official <a href="https://pytorch.org/">PyTorch’s website</a> for the installation details.</p>
+</li>
+</ol>
+<blockquote>
+<p>To know the CUDA version of the GPU machine that you are going to use for model training, you can simply run <code>nvidia-smi</code> in the terminal connected to that cluster. You can also see <a href="https://www.grid5000.fr/w/Nancy:Hardware">hardware properties</a> of different clusters available on Grid`5000.</p>
+</blockquote>
+<p><strong>Important</strong>- It might happen that PyTorch is not installed with CUDA enabled. To resolve this issue, first make sure that Torch is uninstalled. You can uninstall it with <code>pip uninstall torch</code>, and then reinstall it using <a href="https://pytorch.org/get-started/previous-versions/#wheel">Wheel</a>, e.g.:<br>
+<code>pip install torch==1.12.1+cu102 torchvision==0.13.1+cu102 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu102</code><br>
+Then, if you get the following outputs, it means that PyTorch has been successfully compiled with CUDA enabled:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">import</span> torch
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> torch<span class="token punctuation">.</span>__version__
+<span class="token string">'1.12.1+cu102'</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> torch<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>cuda<span class="token punctuation">(</span><span class="token punctuation">)</span>
+tensor<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span> device<span class="token operator">=</span><span class="token string">'cuda:0'</span><span class="token punctuation">)</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> torch<span class="token punctuation">.</span>cuda<span class="token punctuation">.</span>is_available<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token boolean">True</span>
+</code></pre>
+<h3 id="reserving-nodes-on-grid5k">Reserving nodes on Grid5k</h3>
+<ul>
+<li>
+<p>Interactive mode (<em>for debugging purposes</em>). Examples:<br>
+<code>oarsub -l gpu=1,walltime=01:00:00 -I -q production</code><br>
+or<br>
+<code>oarsub -t exotic -p "cluster='grouille'" -l gpu=1 host=2,walltime=01:00:00 -I</code></p>
+</li>
+<li>
+<p>Passive mode (<em>for running your debugged codes</em>). Examples:<br>
+<code>oarsub -p "cluster='graffiti'" -l nodes=1,gpu=1,walltime=03:00:00 "bash run_oar_activate.sh" -q production</code><br>
+or<br>
+<code>oarsub -p "cluster='graffiti'" -l nodes=1,gpu=1,walltime=03:00:00 "bash run_oar_activate.sh" -q production -O OUT/oar_job.%jobid%.output -E OUT/oar_job.%jobid%.error</code></p>
+</li>
+</ul>
+<p>See <a href="https://gitlab.inria.fr/multispeech_wide/welcome/-/blob/master/doc/source/tutorials/all_systems/g5k_quick_start.md">here</a> for more details on how to book a node. You can choose different clusters and wall time depending on your needs. See the list of available clusters <a href="https://www.grid5000.fr/w/Nancy:Hardware">here</a>.</p>
+<p>You can also run your Python code from inside a bash script in passive mode:<br>
+<code>oarsub -S ./train.sh -q production -p "cluster='graffiti'" -l nodes=1,walltime=30:00:00 -O OUT/oar_job.%jobid%.output -E OUT/oar_job.%jobid%.error</code><br>
+where, <code>train.sh</code> looks like this:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token shebang important">#!/bin/bash</span>
+
+<span class="token comment"># This is to activate a python environment with conda</span>
+<span class="token function">source</span> ~/.bashrc
+conda activate venv
+
+<span class="token comment"># Run the training script</span>
+python train.py
+</code></pre>
+<h3 id="file-transfer">File transfer</h3>
+<p>You can easily transfer files between your local machine and Grid’5000 using <code>rsync</code>:</p>
+<p><code>rsync -avzP /path/to/fileOrFolder/ username@nancy.g5k:/srv/storage/talc3@storage4.nancy.grid5000.fr/multispeech/calcul/users/username</code></p>
+<p>You can reverse the two paths for transferring from Grid5k to your computer.</p>
+<h3 id="job-monitoring">Job monitoring</h3>
+<p>You can see the real-time status of Grid’5000 following this <a href="https://intranet.grid5000.fr/oar/Nancy/drawgantt-svg-prod/">link</a>.</p>
+<p>You can also monitor the status of your launched jobs by typing <code>oarstat | grep username</code> in the command line.</p>
+<p>To delete your job, simply run <code>oardel job_id</code>, where <code>job_id</code> is the ID assigned to your job.</p>
+<p>To connect to your running job, run <code>oarsub -C job_id</code>.</p>
+<p>You can run <code>watch -n 1 'nvidia-smi'</code> to see the status of the GPU machine over time.</p>
+<h3 id="datasets">Datasets</h3>
+<p>You can find several datasets (corpora) on Grid5000 in the following directories:</p>
+<ul>
+<li><code>/srv/storage/talc@storage4.nancy.grid5000.fr/multispeech/corpus</code></li>
+<li><code>/srv/storage/talc3@storage4.nancy.grid5000.fr/multispeech/corpus</code></li>
+</ul>
+<h3 id="setting-up-jupyter-notebook">Setting up Jupyter notebook</h3>
+<p>When you launch a job in the interactive mode, e.g., for debugging your codes, it’s more comfortable to have a visual user interface. This can be achieved by <em>Jupyter notebook</em>, for which you will first need reserve a node on Grid5000 (cf. <a href="#reserving-nodes-on-grid5k">Reserving nodes on Grid5k</a>) and then install <code>Jupyter lab</code> in your virtual environment by <code>pip install jupyterlab</code>.</p>
+<p>Once done, follow these steps (you can also connect to your running job in the passive mode (cf. <a href="#job-monitoring">Job monitoring</a>), and launch a Jupyter notebook):</p>
+<ol>
+<li>Activate your conda env, and then run this: <code>jupyter lab --ip 0.0.0.0</code>:</li>
+</ol>
+<pre><code>&gt;&gt; source ~/.bashrc
+&gt;&gt; conda activate venv
+&gt;&gt; jupyter lab --ip 0.0.0.0
+</code></pre>
+<p>This will give you a URL link.</p>
+<ol start="2">
+<li>On your local machine run <code>ssh g5k -L 8888:grele-10.nancy.grid5000.fr:8888 -v</code>, where <code>grele-10</code> is the node’s name that you have booked. Also, make sure that the port <code>8888</code> is the same as the one given in the output of the previous step.</li>
+<li>Paste the URL link given in Step 1 in your browser.</li>
+</ol>
+<p><strong>Important</strong>- When your computer gets disconnected from the Internet, which could happen, e.g., when your computer goes into sleep, you will lose the interactive session and have to redo all the above steps, which is annoying. To avoid this, you can use the GNU <code>screen</code>, to set up a protected screen session.</p>
+<p>In order to do that, once you connect to Grid’5000, e.g., following <code>ssh username@nancy.g5k</code>, run a screen session by typing <code>screen</code>, and then launch your interactive job, e.g., <code>oarsub -l gpu=1,walltime=00:30:00 -I -q production</code>. You can then follow Step 1 above. Once you get the URL link, you need to press CTRL+a, d to detach from your screen session, and then follow Steps 2-3 above.</p>
+<p>To attach to the screen session, type <code>screen -d -r</code>. If you have multiple screen sessions running, you might have to give the ID of the session that you’re going to attach to. <a href="https://unix.stackexchange.com/a/480">More information on screen sessions</a>.</p>
+<h3 id="visual-studio-code-vsc-for-remote-code-editing-and-notebooks-running">Visual Studio Code (VSC) for remote code editing and notebooks running</h3>
+<blockquote>
+<p>Prepared by Antoine Bruez.</p>
+</blockquote>
+<p>It can be really helpful to use your favorite IDE for editing remote source codes and run Jupyter notebooks. This is made possible by <strong>configuring VSC (Visual Studio Code) for SSH connections</strong> and <strong>running notebooks with g5h-hosted kernels.</strong> Additional help can be found on the <a href="https://code.visualstudio.com/docs/remote/ssh">official website</a>.</p>
+<h4 id="summary">Summary</h4>
+<ol>
+<li>
+<p><a href="#prerequisites">Prerequisites</a></p>
+</li>
+<li>
+<p><a href="#setup-ssh-vscode">Setup SSH VSCode</a></p>
+</li>
+<li>
+<p><a href="#run-jupyter-notebooks-in-vsc-using-remote-kernels-hosted-in-g5k">Run jupyter notebooks in VSC using remote kernels (hosted in g5k)</a></p>
+</li>
+</ol>
+<h4 id="prerequisites">Prerequisites</h4>
+<ul>
+<li>
+<p>Have <a href="https://code.visualstudio.com/docs/setup/linux#_debian-and-ubuntu-based-distributions">VSC installed</a> on your device.</p>
+</li>
+<li>
+<p>Have <a href="https://www.grid5000.fr/w/Getting_Started">access to G5K</a>.</p>
+</li>
+<li>
+<p>Having setup your ssh <a href="https://msaadeghii.github.io/files/config">config file</a> in your <strong>local</strong> <code>/home/.ssh</code>.</p>
+</li>
+<li>
+<p>Have <code>jupyterlab</code> installed in a conda venv.</p>
+</li>
+</ul>
+<h4 id="setup-ssh-vsc">Setup SSH VSC</h4>
+<ul>
+<li>
+<p><strong>Open VSC</strong> in your local device.</p>
+<ul>
+<li>Install the <strong>Remote Explorer</strong> extension.</li>
+</ul>
+<ul>
+<li>
+<p>Ctrl + Shift + X to access extension manager.</p>
+</li>
+<li>
+<p>Search for <strong>Remote Explorer</strong> and <strong>install</strong> it.</p>
+</li>
+<li>
+<p>It should appear on the left bar.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Connect</strong> to the remote server.</p>
+<ul>
+<li>
+<p>Ctrl + Shift + P to open settings search bar.</p>
+</li>
+<li>
+<p>Look for <strong>Remote-SSH: Connect to host</strong>.</p>
+</li>
+<li>
+<p>Add a new host. Typically <code>ssh -J g5k_user@access.grid5000.fr g5k_user@nancy</code>.</p>
+</li>
+<li>
+<p>Then, <strong>Remote-SSH: Connect to host</strong> and connect to ⬆️ !</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Work</strong></p>
+<ul>
+<li>
+<p>You can now open a Terminal from VSC, you are then logged into <code>g5k_user@nancy</code> !</p>
+</li>
+<li>
+<p>To <strong>open a remote folder and work remotely</strong> : Ctrl + K then Ctrl + O then browse the remote location you want to work in.</p>
+</li>
+<li>
+<p>If git client is installed and configured (remotely), <strong>you should be able to use the remote git client from vscode</strong> (left bar again).</p>
+</li>
+<li>
+<p>Every saved modification is applied on remote files.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Additional info</strong></p>
+<ul>
+<li>A VSC server is launched in the remote device to comunicate with your local client (you can see it with <code>htop</code> on remote device).</li>
+</ul>
+</li>
+</ul>
+<h3 id="runing-jupyter-notebooks-in-vsc-using-remote-kernels-hosted-on-g5k">Runing jupyter notebooks in VSC using remote kernels (hosted on G5K)</h3>
+<p>When dealing with a Jupyter notebook, one could be interested in <strong>editing it in VSC</strong> while <strong>running it on a G5K node</strong>. Let’s see how to do so.</p>
+<ul>
+<li>
+<p><strong>Book a node</strong> on G5k:</p>
+<pre class=" language-bash"><code class="prism  language-bash">g5k_user@fnancy: oarsub -I -q production -p cluster<span class="token operator">=</span><span class="token string">'grue'</span> -l gpu<span class="token operator">=</span>1,walltime<span class="token operator">=</span>01:00:00
+</code></pre>
+</li>
+<li>
+<p>Log in and <strong>start a jupyterlab server</strong>:</p>
+<pre class=" language-bash"><code class="prism  language-bash">grk_user@grue$ <span class="token function">source</span> ~/.bashrc <span class="token comment"># To use your shortcuts (path)</span>
+
+grk_user@grue$ conda activate myenv
+
+<span class="token punctuation">(</span>myenv<span class="token punctuation">)</span> grk_user@grue$ python -m jupyterlab --ip 0.0.0.0 <span class="token comment"># Launch the server</span>
+</code></pre>
+<p>You should get:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token punctuation">[</span>I 2023-05-02 11:36:00.469 ServerApp<span class="token punctuation">]</span> Serving notebooks from local directory: yourpath
+
+1 active kernel
+
+Jupyter Server 2.5.0 is running at:
+
+http://grue-X.nancy.grid5000.fr:8888/lab?token<span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+http://127.0.0.1:8888/lab?token<span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+</code></pre>
+<p><strong>Copy the address & token </strong> <code>http://grue-X.nancy.grid5000.fr:8888/lab?xxxxxx[...]</code>. </p>
+</li>
+<li>
+<p><strong>Open a <code>.ipynb</code> file</strong> in the <strong>remote VSC</strong> (the remote connection we have just setup, connected to Nancy).</p>
+<p>💡 You may install some extensions like Python and Jupyter.</p>
+</li>
+<li>
+<p><strong>Select a kernel</strong> (right up button) &gt; <strong>existing jupyterlab servers.</strong></p>
+<ul>
+<li>
+<p><strong>Add the remote address & token </strong> that you just copied <code>http://grue-2.nancy.grid5000.fr:8888/lab?xxxxxx[...]</code>.</p>
+</li>
+<li>
+<p><strong>[Optional] Give it a name</strong>.</p>
+</li>
+<li>
+<p><strong>Select this new remote kernel</strong> as the kernel you want to use.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Try <strong>running the following cell</strong>:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">import</span> torch
+torch.cuda.is_available<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>This should return <code>True</code> (if GPU is enabled in your node !).</p>
+</li>
+</ul>
+<h3 id="other-grid5000-resources">Other Grid5000 resources</h3>
+<ul>
+<li><a href="https://www.grid5000.fr/w/Getting_Started">Getting started with Grid’5000</a></li>
+<li><a href="https://team.inria.fr/semagramme/files/2020/11/Introduction-to-Grid5000_group-meeting.pdf">Slides on how to use Grid’5000</a></li>
+<li><a href="https://www.grid5000.fr/w/User:Ibada/Tuto_Deep_Learning">Setting up deep learning tools</a></li>
+<li><a href="https://www.grid5000.fr/w/Nancy:Production">Nancy production</a></li>
+</ul>
+</div>
+</body>
+
+</html>
