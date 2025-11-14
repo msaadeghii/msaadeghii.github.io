@@ -35,6 +35,7 @@ author_profile: false
 <ul>
 <li><a href="#setting-up-conda">Setting up Conda</a></li>
 <li><a href="#reserving-nodes-on-grid5k">Reserving nodes on Grid5k</a></li>
+<li><a href="#tmux">Using tmux</a></li>
 <li><a href="#file-transfer">File transfer</a></li>
 <li><a href="#job-monitoring">Job monitoring</a></li>
 <li><a href="#datasets">Datasets</a></li>
@@ -164,6 +165,27 @@ conda activate venv
 <span class="token comment"># Run the training script</span>
 python train.py
 </code></pre>
+
+<h3 id="tmux">Using tmux</h3>
+<p><code>tmux</code> lets you keep an interactive job running on Grid5000 that <strong>continue even after you disconnect</strong>. </p>
+ <h4> Starting a session</h4>
+<pre><code>tmux new -s session_name</code></pre>
+<p>This creates and enters a new session named <code>session_name</code>.</p>
+
+<h4> Detaching (without stopping your work)</h4>
+<p>Press:</p>
+<pre><code>Ctrl + b</code> then release and press <code>d</code></pre>
+<p>This detaches you from the session. Your programs keep running in the background.</p>
+
+<h4> Listing sessions</h4>
+<pre><code>tmux ls</code></pre>
+
+<h4> Reattaching to a session</h4>
+<pre><code>tmux attach -t session_name</code></pre>
+
+<h4> Killing a session</h4>
+<pre><code>tmux kill-session -t session_name</code></pre>
+
 <h3 id="file-transfer">File transfer</h3>
 <p>You can easily transfer files between your local machine and Grid’5000 using <code>rsync</code>:</p>
 <p><code>rsync -avzP /path/to/fileOrFolder/ username@nancy.g5k:/srv/storage/talc3@storage4.nancy.grid5000.fr/multispeech/calcul/users/username</code></p>
