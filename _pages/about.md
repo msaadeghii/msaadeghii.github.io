@@ -26,7 +26,7 @@ social: true # includes social icons at the bottom of the page
 </style>
 
 <div class="paragraph">
-    I am a researcher with the <a href="https://team.inria.fr/multispeech/">Multispeech team</a> at <a href="https://www.inria.fr/en">Inria</a>, Nancy - Grand Est, France. My current research focuses on robust audio-visual speech processing (enhancement & separation), with an emphasis on combining the expressive power of deep neural networks with statistical and probabilistic machine learning techniques, e.g., using deep generative models.
+    I am a researcher with the <a href="https://team.inria.fr/multispeech/">Multispeech team</a> at <a href="https://www.inria.fr/en">Inria</a>, Nancy - Grand Est, France. My current research focuses on robust audio-visual speech processing (enhancement & separation), with an emphasis on combining the expressive power of deep neural networks with statistical and probabilistic machine learning techniques and generative models.
 </div>
 
 <div style="text-align: justify">
