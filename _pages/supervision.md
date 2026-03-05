@@ -145,6 +145,13 @@ nav_order: 4
     </thead>
     <tbody>
         <tr>
+            <td>2024</td>
+            <td><strong>Arthur Gilles</strong></td>
+            <td>ENS des Mines de Nancy</td>
+            <td><em>Contrastive Learning for Audio-visual Speech Separation</em></td>
+            <td>M2 (MVA) at ENS Paris-Saclay</td>
+        </tr>
+        <tr>
             <td>2022</td>
             <td><strong>Valentin Gerard</strong></td>
             <td>ENS des Mines de Nancy</td>
