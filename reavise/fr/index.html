@@ -107,12 +107,7 @@ svg text{font-family:var(--sans)}
 .player .pwave{position:absolute;left:28px;right:28px;top:60px;display:none}
 .player.audio .pwave{display:block}
 .player.audio video{top:auto;height:86px;background:transparent}
-.player .drop,.xscreen .drop{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;border:4px dashed #56637C;border-radius:26px;color:var(--soft);font-size:26px;cursor:pointer;text-align:center;padding:40px}
-.player .drop b,.xscreen .drop b{font-size:38px;font-weight:650;color:#fff}
-.xscreen .drop{font-size:22px;border-radius:22px;padding:28px} .xscreen .drop b{font-size:30px}
-.player .drop code,.xscreen .drop code{font:inherit;color:var(--lblue)}
 .player .dico svg{width:84px;height:84px} .xscreen .dico svg{width:64px;height:64px}
-.player.empty .drop,.xscreen.empty .drop{display:flex}
 .player.empty video{display:none}
 
 /* ---------- real examples: rows that play your files, and a screen for the input video */
@@ -215,44 +210,27 @@ input[type=range]::-moz-range-thumb{width:42px;height:42px;border-radius:50%;bac
 #ui{position:fixed;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:15px;color:#C5CFDF;opacity:.5;transition:opacity .2s;z-index:20}
 #ui:hover,#ui:focus-within{opacity:1}
 #ui button{background:rgba(12,19,34,.85);border:1px solid #44506A;color:#fff;border-radius:8px;padding:6px 12px;font-size:15px}
-#ui.attn{opacity:1}
-#saveMsg:not(:empty){background:rgba(12,19,34,.85);color:#fff;padding:6px 10px;border-radius:8px}
-#ui #bSave.dirty{background:var(--rose);border-color:var(--rose)}
 #dots{display:flex;gap:7px}
 #dots i{width:9px;height:9px;border-radius:50%;background:#7C89A3;cursor:pointer}
 #dots i.on{background:#fff;transform:scale(1.35)}
 #nav{display:flex;gap:8px;align-items:center}
-#panel{position:fixed;inset:0;background:rgba(12,19,34,.9);z-index:30;display:grid;place-items:center;padding:24px}
-#panel[hidden]{display:none}
-#panel .sheet{background:#fff;border-radius:18px;padding:28px 32px;max-width:980px;width:100%;max-height:100%;overflow:auto;font-size:16px;line-height:1.45}
-#panel h3{font-size:24px;margin-bottom:6px}
-#panel table{border-collapse:collapse;width:100%;margin-top:14px}
-#panel td,#panel th{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:middle}
-#panel code{background:var(--bg);padding:2px 6px;border-radius:5px;font-size:14px}
-#panel .ok{color:#177245;font-weight:700} #panel .no{color:var(--muted)}
-#panel button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 12px;white-space:nowrap}
 /* Website links use the presentation's navigation styling. */
 #ui{flex-wrap:wrap;gap:8px}
 #ui a{background:rgba(12,19,34,.85);border:1px solid #44506A;color:#fff;border-radius:8px;padding:6px 12px;font-size:15px;text-decoration:none}
 #ui a:focus-visible{outline:4px solid var(--rose);outline-offset:3px}
 @media(max-width:900px){#dots{order:3;flex-basis:100%;justify-content:center}#ui button,#ui a{font-size:12px;padding:5px 8px}}
+.chip:disabled,.run:disabled{cursor:default;opacity:.55}
 </style>
 </head>
 <body>
 <div id="stage"></div>
 <div id="ui">
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="/projects/">Projets</a><a href="../" hreflang="en" lang="en">English</a><button id="bMedia" title="Liste des fichiers son et vidéo de cette présentation (M)">Fichiers média</button><button id="bSave" title="Télécharger une copie de cette page qui contient les fichiers choisis">Enregistrer une copie avec mes fichiers</button><span id="saveMsg"></span></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="/projects/">Projets</a><a href="../" hreflang="en" lang="en">English</a></div>
   <div id="dots"></div>
   <div id="nav"><span id="count"></span><button id="bPrev" aria-label="Diapositive précédente">‹</button><button id="bNext" aria-label="Diapositive suivante">›</button><button id="bFull" title="Plein écran (F)">Plein écran</button></div>
 </div>
-<div id="panel" hidden=""><div class="sheet"></div></div>
-<input type="file" id="file" accept="audio/*,video/*" hidden="">
-<input type="file" id="imp" accept=".html,.htm,text/html" hidden="">
 
 <script>
-const PRISTINE='<!doctype html>\n'+document.documentElement.outerHTML;
-/* Files stored inside this page by the "Save a copy with my files" button. Leave this line as it is. */
-/*EMBED-START*/const EMBED={};/*EMBED-END*/
 // Shared assets extracted from the original saved presentation.
 const MEDIA_FILES={
   "clean": "clean.wav",
@@ -267,21 +245,7 @@ const MEDIA_FILES={
   "demo_before": "demo_before.mp4",
   "demo_after": "demo_after.mp4"
 };
-/* =====================================================================
-   1. YOUR SOUNDS AND VIDEOS
-   Put your files in a folder named "media" next to this HTML file,
-   using the names below with any of these endings:
-   .mp4 .webm .mov .m4v .wav .mp3 .m4a .ogg
-   Example: media/noisy.wav, media/silent.mp4
-   Or skip the folder: choose or drop files on the slides, then press
-   "Save a copy with my files" (bottom left). The downloaded HTML carries
-   those files inside it; open that copy from then on.
-   Missing files are fine: the drawings stay, and the play buttons turn
-   into "+" buttons that let you pick a file for the current session.
-   Every slot below is independent: a file given to one slide is never
-   used on another. To show the same clip in several places, give those
-   entries the same "file" name (you may include the ending).
-   ===================================================================== */
+/* Media is loaded from the shared static folder; this is a public viewing copy. */
 const MEDIA_DIR = "../media/";
 const MEDIA = {
   video_cover:   {file:"video_cover",   what:"Vidéo d’une personne qui parle, pour le titre (sans le son)", where:"diapo 1"},
@@ -303,7 +267,6 @@ const MEDIA = {
   picture_voice: {file:"picture_voice", what:"La voix propre de l’image finale (son)", where:"diapo 14"},
   video_picture: {file:"video_picture", what:"Vidéo des lèvres pour l’image finale (sans le son)", where:"diapo 14"}
 };
-const EXT = ["mp4","webm","mov","m4v","wav","mp3","m4a","ogg"];
 
 /* =====================================================================
    2. DRAWING HELPERS
@@ -364,11 +327,11 @@ function vid({w=440,slot=null,sm=false,mode='',mute=false,zoom=false}={}){
   const face=zoom
     ?`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="${C.skin}"/><path d="M 176 62 Q 200 86 224 62" fill="none" stroke="${C.ink}" stroke-width="6" stroke-linecap="round"/>${mouth(200,178,176,.1,true,mode)}</svg>`
     :`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="#FFF3E4"/><circle cx="345" cy="50" r="95" fill="#FFE7CD"/>${bust(200,128,74,.5,{bottom:300,talk:true,mode})}</svg>`;
-  return `<div class="vid${sm?' sm':''}" style="width:${w}px"><div class="screen"${slot?` data-slot="${slot}" data-ui="screen"`:''}>${face}${slot?'<video muted loop playsinline></video>':''}<span class="vbadge">${ico('play')}</span>${mute?`<span class="vmute">${ico('mute')}</span>`:''}<div class="scrub"><i></i></div>${slot?`<button class="vadd" data-pick="${slot}" title="Mettre votre propre vidéo ici">${ico('plus')}</button>`:''}</div></div>`}
+  return `<div class="vid${sm?' sm':''}" style="width:${w}px"><div class="screen"${slot?` data-slot="${slot}" data-ui="screen"`:''}>${face}${slot?'<video muted loop playsinline></video>':''}<span class="vbadge">${ico('play')}</span>${mute?`<span class="vmute">${ico('mute')}</span>`:''}<div class="scrub"><i></i></div></div></div>`}
 function film({n=10,h=110,segs=SEG}={}){let t='';for(let i=0;i<n;i++)t+=`<svg viewBox="0 0 80 64" preserveAspectRatio="xMidYMid slice"><rect width="80" height="64" fill="#FFF3E4"/>${bust(40,25,21,opn((i+.5)/n,segs),{bottom:64})}</svg>`;
   return `<div class="film" style="height:${h}px">${t}</div>`}
-function chip(slot,label,{mini=false,light=false,sync=''}={}){return `<button class="chip empty${mini?' mini':''}${light?' light':''}" data-slot="${slot}" data-ui="chip" data-label="${label}"${sync?` data-sync="${sync}"`:''}><span class="ico">${ico('plus')}</span>${mini?'':'<span class="lab">ajouter un son</span>'}</button>`}
-function player(slot,kind){return `<div class="player empty" data-slot="${slot}" data-ui="player"><div class="pwave">${wave({w:760,h:280,kind,n:70})}</div><video controls playsinline preload="metadata"></video><div class="drop" data-pick="${slot}"><span class="dico">${ico('video')}</span><b>Déposez une vidéo ou un son ici</b><span>ou cliquez pour choisir un fichier, ou enregistrez-le sous <code>${MEDIA_DIR}${MEDIA[slot].file}.mp4</code></span></div></div>`}
+function chip(slot,label,{mini=false,light=false,sync=''}={}){return `<button class="chip empty${mini?' mini':''}${light?' light':''}" data-slot="${slot}" data-ui="chip" data-label="${label}"${sync?` data-sync="${sync}"`:''}><span class="ico">${ico('mute')}</span>${mini?'':'<span class="lab">Son indisponible</span>'}</button>`}
+function player(slot,kind){return `<div class="player empty" data-slot="${slot}" data-ui="player"><div class="pwave">${wave({w:760,h:280,kind,n:70})}</div><video controls playsinline preload="metadata"></video></div>`}
 const lab=k=>`<span class="tico">${ico(k)}</span>`;
 function tl(rows,{bands='',playhead=true,gap=12}={}){
   return `<div class="tl"><div class="tll" style="gap:${gap}px">${rows.map(r=>`<div class="tlc" style="height:${r.h}px">${r.label}</div>`).join('')}</div><div class="tlt" style="gap:${gap}px">${bands}${rows.map(r=>`<div class="tlr" style="height:${r.h}px">${r.track}</div>`).join('')}${playhead?'<div class="playhead"></div>':''}</div></div>`}
@@ -500,7 +463,7 @@ ${tl([{h:96,label:lab('video'),track:film({n:9,h:96})},...[0,1,2].map(i=>({h:78,
 </div></div>`);
 
 /* 9. real examples */
-const run=(slot,label,opt='')=>`<button class="run empty${opt.includes('alt')?' alt':''}" data-slot="${slot}" data-ui="run" data-label="${label}"${opt.includes('with')?' data-with="1"':''}><span class="ico">${ico('plus')}</span><span class="lab">${label}</span><span class="rp"><i></i></span></button>`;
+const run=(slot,label,opt='')=>`<button class="run empty${opt.includes('alt')?' alt':''}" data-slot="${slot}" data-ui="run" data-label="${label}"${opt.includes('with')?' data-with="1"':''}><span class="ico">${ico('mute')}</span><span class="lab">${label}</span><span class="rp"><i></i></span></button>`;
 S('examples','',`<h1>Et maintenant, de vrais exemples</h1>
 <div class="body"><div class="row" style="gap:28px;align-items:stretch">
 <div class="card panel" style="flex:none;width:580px">
@@ -512,7 +475,7 @@ S('examples','',`<h1>Et maintenant, de vrais exemples</h1>
 <div class="card panel" style="border-color:var(--blue)">
 <h2 style="color:var(--blue)">Avec la vidéo</h2>
 <div class="row" style="gap:32px;align-items:center;flex:1">
-<div class="xscreen empty" data-slot="silent" data-ui="xscreen"><video playsinline preload="auto"></video><span class="xtag" id="xtag">${ico('mute')}<span>entrée muette</span></span><button class="xplay" id="xplay" aria-label="Lire la vidéo muette">${ico('play')}</button><button class="xchg" data-pick="silent" title="Choisir une autre vidéo" aria-label="Choisir une autre vidéo">${ico('plus')}</button><div class="xbar"><i id="xbar"></i></div><div class="xwarn"><b>Le navigateur ne peut pas afficher l’image de cette vidéo.</b><span>Son encodage n’est pas pris en charge. Convertissez-la, puis choisissez-la de nouveau :</span><code>ffmpeg -i input.mp4 -c:v libx264 -pix_fmt yuv420p output.mp4</code></div><div class="drop" data-pick="silent"><span class="dico">${ico('video')}</span><b>Déposez la vidéo muette ici</b><span>ou cliquez pour la choisir, ou enregistrez-la sous <code>${MEDIA_DIR}${MEDIA.silent.file}.mp4</code></span></div></div>
+<div class="xscreen empty" data-slot="silent" data-ui="xscreen"><video playsinline preload="auto"></video><span class="xtag" id="xtag">${ico('mute')}<span>entrée muette</span></span><button class="xplay" id="xplay" aria-label="Lire la vidéo muette">${ico('play')}</button><div class="xbar"><i id="xbar"></i></div><div class="xwarn"><b>Cette vidéo ne peut pas être lue dans ce navigateur.</b></div></div>
 <div class="runs" style="flex:1;min-width:0"><p class="rhead ref">le vrai enregistrement</p>${run('reference','Voix originale','alt with')}<p class="rhead gap">généré par le modèle</p>${[1,2].map(k=>run('synced_'+k,'Essai '+k,'with')).join('')}</div>
 </div>
 <p class="hand b">mêmes lèvres : la vraie voix et deux voix générées</p>
@@ -606,15 +569,13 @@ addEventListener('resize',fit);fit();
 addEventListener('keydown',e=>{const t=e.target;
   if(t.matches&&t.matches('input[type=range]')&&e.key.startsWith('Arrow'))return;
   if(t.matches&&t.matches('button,video')&&(e.key===' '||e.key==='Enter'))return;
-  if(e.key==='Escape'){document.getElementById('panel').hidden=true;return}
   if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
   else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}
   else if(e.key==='Home')go(0);else if(e.key==='End')go(els.length-1);
-  else if(e.key==='f'||e.key==='F')fullscreen();else if(e.key==='m'||e.key==='M')togglePanel()});
+  else if(e.key==='f'||e.key==='F')fullscreen()});
 document.getElementById('bPrev').onclick=()=>go(cur-1);
 document.getElementById('bNext').onclick=()=>go(cur+1);
 document.getElementById('bFull').onclick=fullscreen;
-document.getElementById('bMedia').onclick=togglePanel;
 function fullscreen(){const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(d.requestFullscreen)d.requestFullscreen().catch(()=>{})}
 let tx=null;addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
 addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>70&&!e.target.closest('input'))go(cur+(dx<0?1:-1))});
@@ -654,9 +615,9 @@ function tick(now){const T=still?.52:(now%LOOP)/LOOP,s=els[cur];
 requestAnimationFrame(tick);
 
 /* =====================================================================
-   5. MEDIA: find the files, play them, let you pick others
+   5. MEDIA: load and play the published files
    ===================================================================== */
-const state={},audioEl={};let pickKey=null;
+const state={},audioEl={};
 const isVideoFile=(type,name)=>/^video\//i.test(type||'')||/\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(name||'');
 /* load a file far enough to know whether the browser can play it and whether it can show a picture */
 function probeUrl(url,wait=2500){return new Promise(res=>{const v=document.createElement('video');v.preload='auto';v.muted=true;v.playsInline=true;let done=false,meta=false,t2;
@@ -665,19 +626,17 @@ function probeUrl(url,wait=2500){return new Promise(res=>{const v=document.creat
   const to=setTimeout(()=>fin(meta),wait);
   v.onloadedmetadata=()=>{meta=true;if(pic())fin(true);else t2=setTimeout(()=>fin(true),900)};
   v.onloadeddata=()=>fin(true);v.onerror=()=>fin(false);v.src=url})}
-async function probe(key){const b=MEDIA[key].file,c=/\.[a-z0-9]+$/i.test(b)?[b]:EXT.map(e=>b+'.'+e);
-  for(const name of c){const r=await probeUrl(MEDIA_DIR+name);if(r){r.name=MEDIA_DIR+name;r.isVideoFile=isVideoFile('',name);return r}}return null}
 function setMedia(key,info){xStop();if(audioEl[key]){audioEl[key].pause();delete audioEl[key]}state[key]=info;refresh(key)}
 function refresh(key){const m=state[key];
   document.querySelectorAll(`[data-slot="${key}"]`).forEach(el=>{const ui=el.dataset.ui;
-    if(ui==='chip'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'plus');const l=el.querySelector('.lab');if(l)l.textContent=m?el.dataset.label:'ajouter un son';
-      el.title=m?'Lire':`Choisissez un fichier son ou vidéo, ou enregistrez-le sous ${MEDIA_DIR}${MEDIA[key].file}.wav`;el.setAttribute('aria-label',m?'Lire : '+MEDIA[key].what:'Ajouter un fichier : '+MEDIA[key].what)}
+    if(ui==='chip'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'mute');const l=el.querySelector('.lab');if(l)l.textContent=m?el.dataset.label:'Son indisponible';
+      el.disabled=!m;el.title=m?'Lire':'Son indisponible';el.setAttribute('aria-label',m?'Lire : '+MEDIA[key].what:'Son indisponible')}
     else if(ui==='screen'){const v=el.querySelector('video'),ok=m&&m.hasVideo;el.classList.toggle('has',!!ok);if(ok){if(v.dataset.url!==m.url){v.dataset.url=m.url;v.src=m.url}}else{v.removeAttribute('src');delete v.dataset.url}}
-    else if(ui==='run'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'plus');el.querySelector('.rp i').style.width='0';
-      el.title=m?'Lire':`Choisissez un fichier, déposez-le ici, ou enregistrez-le sous ${MEDIA_DIR}${MEDIA[key].file}.wav (ou .mp4)`;el.setAttribute('aria-label',(m?'Lire : ':'Ajouter un fichier : ')+MEDIA[key].what)}
+    else if(ui==='run'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'mute');el.querySelector('.rp i').style.width='0';
+      el.disabled=!m;el.title=m?'Lire':'Son indisponible';el.setAttribute('aria-label',m?'Lire : '+MEDIA[key].what:'Son indisponible')}
     else if(ui==='xscreen'){const v=el.querySelector('video'),ok=!!m&&(m.hasVideo||m.isVideoFile);el.classList.toggle('empty',!ok);el.classList.toggle('nopic',ok&&!m.hasVideo);if(ok&&!xNow){setSrc(v,m.url);v.muted=true;xTag('mute','entrée muette')}}
     else if(ui==='player'){const v=el.querySelector('video');el.classList.toggle('empty',!m);el.classList.toggle('audio',!!m&&!m.hasVideo);if(m)v.src=m.url;else v.removeAttribute('src')}});
-  drawPanel();syncScreens()}
+  syncScreens()}
 function syncScreens(){document.querySelectorAll('.screen>video').forEach(v=>{if(v.dataset.url&&v.closest('.slide').classList.contains('active'))v.play().catch(()=>{});else v.pause()})}
 function stopAll(){xStop();Object.values(audioEl).forEach(a=>a.pause());document.querySelectorAll('.player video').forEach(v=>v.pause())}
 function getAudio(key){let a=audioEl[key];if(!a){a=audioEl[key]=new Audio(state[key].url);a.onplay=()=>mark(key,true);a.onpause=a.onended=()=>mark(key,false)}return a}
@@ -694,7 +653,7 @@ function xToggle(){if(xNow){stopAll();return}const m=state.silent;if(!m||!(m.has
   const v=xVideo();setSrc(v,m.url);v.muted=true;try{v.currentTime=0}catch(e){}v.play().catch(()=>{});xTag('mute','entrée muette');
   document.querySelectorAll('.run .rp i').forEach(i=>i.style.width='0');xNow={key:'silent',media:v,el:xScreen()};xOn(true)}
 /* a run: its sound over the muted input video, or its own video if the file is one */
-function playRun(el){const key=el.dataset.slot,m=state[key];if(!m){pick(key);return}
+function playRun(el){const key=el.dataset.slot,m=state[key];if(!m)return;
   const was=el.classList.contains('playing');stopAll();if(was)return;
   const v=xVideo();let media,onScreen=false;
   if(el.dataset.with){const sil=state.silent;
@@ -706,7 +665,7 @@ function playRun(el){const key=el.dataset.slot,m=state[key];if(!m){pick(key);ret
   document.querySelectorAll('.run .rp i').forEach(i=>i.style.width='0');
   xNow={key,media,el};el.classList.add('playing');el.querySelector('.ico').innerHTML=ico('pause');if(onScreen)xOn(true)}
 (()=>{const v=xVideo();if(!v)return;
-  const check=()=>{const m=state.silent;if(v.videoWidth>0){xScreen().classList.remove('nopic');if(m&&m.url===v.dataset.url&&!m.hasVideo){m.hasVideo=true;m.unplayable=false;drawPanel()}}
+  const check=()=>{const m=state.silent;if(v.videoWidth>0){xScreen().classList.remove('nopic');if(m&&m.url===v.dataset.url&&!m.hasVideo){m.hasVideo=true;m.unplayable=false;}}
     if(v.paused&&v.currentTime===0&&v.readyState>=1){try{v.currentTime=0.01}catch(e){}}};
   v.addEventListener('loadedmetadata',check);v.addEventListener('loadeddata',check);v.addEventListener('resize',check)})();
 setInterval(()=>{const v=xVideo(),xb=document.getElementById('xbar');if(v&&xb&&v.duration&&xScreen().classList.contains('on'))xb.style.width=(v.currentTime/v.duration*100)+'%';
@@ -714,68 +673,21 @@ setInterval(()=>{const v=xVideo(),xb=document.getElementById('xbar');if(v&&xb&&v
   if(md.ended){if(bar)bar.style.width='100%';xStop();return}
   if(bar&&md.duration)bar.style.width=(md.currentTime/md.duration*100)+'%'},80);
 function mark(key,on){document.querySelectorAll(`[data-slot="${key}"][data-ui="chip"]`).forEach(c=>{c.classList.toggle('playing',on);c.querySelector('.ico').innerHTML=ico(on?'pause':'play')})}
-function toggle(key,chipEl){const m=state[key];if(!m){pick(key);return}
+function toggle(key,chipEl){const m=state[key];if(!m)return;
   const a=getAudio(key);
   if(a.paused){stopAll();a.currentTime=0;const sv=chipEl&&chipEl.dataset.sync&&document.querySelector(`.slide.active .screen[data-slot="${chipEl.dataset.sync}"].has video`);if(sv){try{sv.currentTime=0}catch(e){}sv.play().catch(()=>{})}a.play().catch(()=>{})}else a.pause()}
-function pick(key){pickKey=key;const fi=document.getElementById('file');fi.value='';fi.click()}
-async function useFile(key,file,name,src='picked'){if(!file||!MEDIA[key])return;const url=URL.createObjectURL(file),nm=name||file.name||key;const r=await probeUrl(url,8000);
-  const info={url,hasVideo:!!(r&&r.hasVideo),isVideoFile:isVideoFile(file.type,nm),unplayable:!r,name:nm,blob:file,src};
-  setMedia(key,info);if(src==='picked'){dirty=true;saveState(info.isVideoFile&&!info.hasVideo?noPicture(nm):(!info.isVideoFile&&VIDEO_ONLY.includes(key)?`${nm} est un fichier son ; il faut une vidéo ici.`:''))}}
-const VIDEO_ONLY=['silent','video_cover','video_camera','video_step1','video_picture'];
-const noPicture=nm=>`Ce navigateur ne peut pas afficher l’image de ${nm}. Convertissez-la en H.264 (yuv420p), puis choisissez-la de nouveau.`;
-/* ---------- keep the chosen files: download a copy of this page with them stored inside */
-let dirty=false;
-function saveState(text){const b=document.getElementById('bSave');b.classList.toggle('dirty',dirty);document.getElementById('ui').classList.toggle('attn',dirty);
-  document.getElementById('saveMsg').textContent=text||(dirty?'Fichiers choisis, pas encore enregistrés':'');drawPanel()}
-const readData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('lecture d’un fichier impossible'));r.readAsDataURL(b)});
-function dataToBlob(d){const i=d.indexOf(','),mime=d.slice(5,i).replace(';base64',''),bin=atob(d.slice(i+1)),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:mime})}
-async function saveCopy(){const btn=document.getElementById('bSave');btn.disabled=true;saveState('Préparation de la copie…');
-  try{const out={};let n=0,bytes=0,left=0;
-    for(const[k,m]of Object.entries(state)){if(!m)continue;let b=m.blob;
-      if(!b){try{b=await(await fetch(m.url)).blob()}catch(e){b=null}}
-      if(b){out[k]={n:m.name||k,d:await readData(b)};n++;bytes+=b.size}else left++}
-    const A='/*EMBED-'+'START*/',B='/*EMBED-'+'END*/',i=PRISTINE.indexOf(A),j=PRISTINE.indexOf(B,i);
-    if(i<0||j<0)throw new Error('cette page a été modifiée et ne peut pas contenir de fichiers');
-    const page=new Blob([PRISTINE.slice(0,i),A,'const EMBED=',JSON.stringify(out),';',PRISTINE.slice(j)],{type:'text/html'});
-    let name=decodeURIComponent(location.pathname.split('/').pop()||'')||'reavise-intro.html';if(!/\.html?$/i.test(name))name='reavise-intro.html';
-    if(!/-with-media\.html?$/i.test(name))name=name.replace(/\.html?$/i,'-with-media.html');
-    const a=document.createElement('a');a.href=URL.createObjectURL(page);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),120000);
-    for(const m of Object.values(state))if(m&&m.src==='picked')m.src='saved';
-    dirty=false;saveState(`${name} téléchargé, avec ${n} fichier${n===1?'':'s'} à l’intérieur (${(bytes/1048576).toFixed(1)} Mo). Ouvrez cette copie la prochaine fois.`+(left?` ${left} fichier${left===1?'':'s'} du dossier media n’a pas pu être copié et a encore besoin de ce dossier.`:''))}
-  catch(e){saveState('Enregistrement impossible : '+e.message)}
-  btn.disabled=false}
-document.getElementById('bSave').onclick=saveCopy;
-/* bring in the files stored in an earlier saved copy of this deck */
-async function importCopy(file){if(!file)return;saveState('Lecture de '+file.name+'…');
-  const t=await file.text(),A='/*EMBED-'+'START*/const EMBED=',B=';/*EMBED-'+'END*/',i=t.indexOf(A),j=t.indexOf(B,i);let data=null;
-  if(i>=0&&j>=0){try{data=JSON.parse(t.slice(i+A.length,j))}catch(e){}}
-  if(!data||!Object.keys(data).length){saveState('Aucun fichier trouvé dans '+file.name+'.');return}
-  const old=!t.includes('demo_before:');let n=0;
-  for(const[k,e]of Object.entries(data)){let key=k,blob;try{blob=dataToBlob(e.d)}catch(err){continue}
-    if(old&&isVideoFile(blob.type,e.n)){if(k==='noisy')key='demo_before';else if(k==='enhanced')key='demo_after'}
-    if(MEDIA[key]){await useFile(key,blob,e.n,'picked');n++}}
-  saveState(n?`${n} fichier${n===1?'':'s'} récupéré${n===1?'':'s'} depuis ${file.name}. Cliquez sur « Enregistrer une copie avec mes fichiers » pour les garder dans cette version.`:'Aucun fichier correspondant trouvé dans '+file.name+'.')}
-document.getElementById('imp').onchange=e=>{importCopy(e.target.files[0]);e.target.value=''};
-document.getElementById('file').onchange=e=>useFile(pickKey,e.target.files[0]);
-document.addEventListener('click',e=>{const p=e.target.closest('[data-pick]');if(p){e.stopPropagation();pick(p.dataset.pick);return}
+document.addEventListener('click',e=>{
   const xs=e.target.closest('.xscreen');if(xs&&!xs.classList.contains('empty')){xToggle();return}
   const r=e.target.closest('.run');if(r){playRun(r);return}
   const c=e.target.closest('.chip');if(c)toggle(c.dataset.slot,c)});
 document.addEventListener('play',e=>{if(e.target.matches&&e.target.matches('.player video'))Object.values(audioEl).forEach(a=>a.pause())},true);
 addEventListener('dragover',e=>e.preventDefault());
-addEventListener('drop',e=>{e.preventDefault();const t=e.target.closest&&e.target.closest('[data-slot],[data-pick]');if(t)useFile(t.dataset.slot||t.dataset.pick,e.dataTransfer.files[0])});
+addEventListener('drop',e=>e.preventDefault());
 
-const panel=document.getElementById('panel');
-function drawPanel(){panel.firstElementChild.innerHTML=`<h3>Fichiers son et vidéo</h3>
-<p>Créez un dossier nommé <code>media</code> à côté de ce fichier HTML et enregistrez-y vos fichiers sous ces noms. Extensions acceptées : ${EXT.map(e=>'.'+e).join(' ')}. </p><p style="margin-top:8px"><b>Ou gardez-les dans la page :</b> choisissez les fichiers ici ou déposez-les sur les diapositives, puis cliquez sur <button onclick="saveCopy()">Enregistrer une copie avec mes fichiers</button>. Un nouveau fichier HTML est téléchargé avec ces fichiers à l’intérieur ; ouvrez ensuite cette copie. Sans cette étape, les fichiers choisis sont perdus à la fermeture de la page. De grosses vidéos donnent un gros fichier.</p>
-<table><tr><th>Fichier à enregistrer</th><th>Contenu</th><th>Utilisé sur</th><th>État</th><th></th></tr>${Object.entries(MEDIA).map(([k,m])=>`<tr><td><code>${MEDIA_DIR}${m.file}</code></td><td>${m.what}</td><td>${m.where}</td><td class="${state[k]&&!(state[k].isVideoFile&&!state[k].hasVideo)?'ok':'no'}">${!state[k]?'absent':(state[k].src==='saved'?'contenu dans cette page':state[k].src==='picked'?'choisi, pas encore enregistré':'trouvé dans le dossier media')+(state[k].isVideoFile&&!state[k].hasVideo?' : le navigateur ne peut pas afficher son image':'')}</td><td><button data-pick="${k}">Choisir un fichier</button></td></tr>`).join('')}</table>
-<p style="margin-top:14px"><b>Vous venez d’une version précédente ?</b> <button onclick="document.getElementById('imp').click()">Récupérer les fichiers d’une copie enregistrée</button> Choisissez votre ancien fichier <code>…-with-media.html</code> (la version anglaise fonctionne aussi) ; ses fichiers sont placés aux bons endroits ici.</p>
-<p style="margin-top:14px">Touches : flèches pour avancer, F pour le plein écran, M pour ouvrir ou fermer cette liste. <button onclick="document.getElementById('panel').hidden=true">Fermer</button></p>`}
-function togglePanel(){panel.hidden=!panel.hidden}
-panel.addEventListener('click',e=>{if(e.target===panel)panel.hidden=true});
-drawPanel();
+// Load only published assets. Missing optional slots retain their illustrations.
 Object.keys(MEDIA).forEach(k=>{refresh(k);
-  if(EMBED[k]){try{useFile(k,dataToBlob(EMBED[k].d),EMBED[k].n,'saved')}catch(e){}}
-  else if(MEDIA_FILES[k]){const url=MEDIA_DIR+MEDIA_FILES[k];probeUrl(url).then(r=>{if(r&&!state[k]){r.name=url;r.isVideoFile=isVideoFile('',url);r.src='folder';setMedia(k,r)}})}});
+  if(MEDIA_FILES[k]){const url=MEDIA_DIR+MEDIA_FILES[k];probeUrl(url).then(r=>{
+    if(r&&!state[k]){r.name=url;r.isVideoFile=isVideoFile('',url);setMedia(k,r)}
+  })}});
 go(Math.max(0,(parseInt(location.hash.slice(1))||1)-1));
 </script></body></html>
