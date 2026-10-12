@@ -23,6 +23,8 @@ horizontal: false
 <b>REAVISE</b> (2023-2026) is a project funded by the <i>Agence Nationale de la Recherche</i> (<a href="https://anr.fr/">ANR</a>) via the <a href="https://anr.fr/en/call-for-proposals-details/call/programme-jeunes-chercheuses-et-jeunes-chercheurs-jcjc/">JCJC program</a>. The project aims to develop a <i>unified audio-visual speech enhancement (AVSE) framework</i> that robustly integrates acoustic data (noisy speech signal) with accompanying visual information (speaker’s lip movements) in order to recover an intelligible, high-quality estimate of the clean speech signal with <i>low computational power</i> and <i>independently of the acoustic and visual noise environments</i>.
 </div>
 
+- Interactive presentation: [English]({{ "/reavise/" | relative_url }}) · [Français]({{ "/reavise/fr/" | relative_url }})
+
 - [A quick introduction to REAVISE](/files/reavise.pdf){:target="\_blank" rel="noopener"}
 
 ## Job opportunities

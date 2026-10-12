@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REAVISE : entendre une voix malgré le bruit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Caveat:wght@500..700&amp;display=swap">
+<style>
+:root{
+  --bg:#F2F5F9; --card:#FFFFFF; --line:#D5DCE6; --ink:#131C2E; --body:#3F4A5E; --muted:#5A6578;
+  --blue:#1F5FD0; --orange:#F08A24; --orange-t:#A84E0B; --rose:#D1486A; --rose-t:#A92F50;
+  --film:#0C1322; --lblue:#9CC4FF; --lorange:#FFB366; --soft:#C5CFDF; --band:#E1ECFC;
+  --sans:'Bricolage Grotesque',system-ui,'Segoe UI',Arial,sans-serif;
+  --hand:'Caveat','Segoe Print','Bradley Hand',cursive;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--film);overflow:hidden}
+body{font-family:var(--sans);color:var(--ink)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:4px solid var(--rose);outline-offset:3px}
+
+/* ---------- stage and slides */
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:var(--bg)}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:88px 120px 112px;background:var(--bg)}
+.slide.active{display:flex}
+.slide.dark{background:var(--ink);color:#F6F8FB}
+h1{font-weight:650;font-size:78px;line-height:1.05;letter-spacing:-.02em}
+h1.big{font-size:112px;line-height:1}
+h2{font-weight:650;font-size:42px;line-height:1.1;letter-spacing:-.01em}
+.step{font-weight:700;font-size:32px;color:var(--blue);margin-bottom:10px}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:40px;padding-top:30px}
+.cap{font-size:38px;line-height:1.3;color:var(--body)}
+.cap b{color:var(--ink);font-weight:700}
+.dark .cap{color:var(--soft)} .dark .cap b{color:#fff}
+.center{text-align:center}
+.hand{font-family:var(--hand);font-weight:600;font-size:48px;line-height:1.02}
+.hand.b{color:var(--blue)} .hand.o{color:var(--orange-t)} .hand.r{color:var(--rose-t)} .hand.l{color:var(--lblue)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:28px}
+.row{display:flex}
+.nw{white-space:nowrap}
+.pill{display:inline-block;white-space:nowrap;font-weight:600;font-size:27px;line-height:1;padding:14px 22px;border-radius:40px;background:var(--bg);border:2px solid var(--line);color:var(--body)}
+svg{display:block}
+svg text{font-family:var(--sans)}
+
+/* ---------- video tile: a film frame with a play symbol and a running timeline */
+.vid{position:relative;background:var(--film);border-radius:24px;padding:26px 14px}
+.vid::before,.vid::after,.film::before,.film::after{content:"";position:absolute;left:20px;right:20px;height:9px;border-radius:2px;opacity:.85;
+  background:repeating-linear-gradient(90deg,#EEF2F7 0 13px,transparent 13px 31px)}
+.vid::before{top:9px} .vid::after{bottom:9px}
+.vid.sm{padding:17px 8px;border-radius:16px}
+.vid.sm::before,.vid.sm::after{height:6px;left:12px;right:12px;background:repeating-linear-gradient(90deg,#EEF2F7 0 8px,transparent 8px 20px)}
+.vid.sm::before{top:6px} .vid.sm::after{bottom:6px}
+.screen{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#FFF3E4}
+.screen>svg,.screen>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.screen>video{display:none;background:#000}
+.screen.has>video{display:block}
+.vbadge,.vmute{position:absolute;top:12px;width:54px;height:54px;border-radius:50%;background:rgba(12,19,34,.82);color:#fff;display:grid;place-items:center}
+.vbadge{left:12px} .vmute{right:12px}
+.vbadge svg,.vmute svg{width:32px;height:32px}
+.sm .vbadge{width:36px;height:36px;top:8px;left:8px} .sm .vbadge svg{width:22px;height:22px}
+.scrub{position:absolute;left:12px;right:12px;bottom:12px;height:8px;border-radius:4px;background:rgba(12,19,34,.28)}
+.scrub i{display:block;height:100%;width:0;border-radius:4px;background:var(--rose)}
+.sm .scrub{height:5px;left:8px;right:8px;bottom:8px}
+.vadd{position:absolute;right:12px;bottom:30px;width:44px;height:44px;border-radius:50%;border:2px dashed rgba(12,19,34,.55);background:rgba(255,255,255,.7);color:var(--ink);display:grid;place-items:center;opacity:.55}
+.vadd:hover{opacity:1} .vadd svg{width:24px;height:24px}
+.screen.has .vadd{display:none}
+
+/* ---------- film strip: one continuous clip, not separate pictures */
+.film{position:relative;display:flex;gap:3px;background:var(--film);border-radius:12px;padding:17px 9px;width:100%}
+.film::before,.film::after{left:11px;right:11px;height:6px;background:repeating-linear-gradient(90deg,#EEF2F7 0 9px,transparent 9px 22px)}
+.film::before{top:6px} .film::after{bottom:6px}
+.film svg{flex:1;width:0;min-width:0;height:100%;border-radius:3px}
+.nofilm{width:100%;height:100%;border:3px dashed #9AA5B8;border-radius:12px;display:grid;place-items:center;color:#7E8AA0;font-family:var(--hand);font-weight:600;font-size:44px}
+.nofilm svg{width:46px;height:46px}
+
+/* ---------- timeline with tracks and a moving playhead */
+.tl{display:flex;gap:16px}
+.tll{display:flex;flex-direction:column;width:64px;flex:none}
+.tlc{display:grid;place-items:center}
+.tico{width:56px;height:56px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.tico svg{width:32px;height:32px}
+.tlt{position:relative;display:flex;flex-direction:column;flex:1;min-width:0}
+.tlr{position:relative;z-index:1}
+.band{position:absolute;bottom:0;background:var(--band);border-radius:14px;z-index:0}
+.trk{position:relative}
+.playhead{position:absolute;top:-10px;bottom:-10px;left:0;width:5px;margin-left:-2.5px;border-radius:3px;background:var(--rose);z-index:3;pointer-events:none}
+.playhead::before{content:"";position:absolute;left:-8.5px;top:-6px;border:11px solid transparent;border-top:14px solid var(--rose);border-bottom:0}
+
+/* ---------- play buttons for your own sounds */
+.chip{display:inline-flex;align-items:center;gap:12px;height:60px;padding:0 24px 0 8px;border-radius:30px;border:2px solid var(--ink);background:var(--ink);color:#fff;font-weight:650;font-size:26px;flex:none}
+.chip .ico{width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink);display:grid;place-items:center;flex:none}
+.chip .ico svg{width:28px;height:28px}
+.chip.mini{width:56px;height:56px;padding:0;justify-content:center;gap:0}
+.chip.mini .ico{width:40px;height:40px}
+.chip.empty{background:transparent;border:2px dashed #9AA5B8;color:var(--muted)}
+.chip.empty .ico{background:transparent;color:#7E8AA0}
+.chip.playing{background:var(--rose);border-color:var(--rose)}
+.chip.light{border-color:#fff;background:#fff;color:var(--ink)}
+.chip.light .ico{background:var(--ink);color:#fff}
+.chip.light.empty{background:transparent;border:2px dashed #7C89A3;color:var(--soft)}
+.chip.light.empty .ico{background:transparent;color:var(--soft)}
+
+/* ---------- big before/after players */
+.player{position:relative;width:816px;height:470px;border-radius:26px;overflow:hidden;background:var(--film)}
+.player video{position:absolute;inset:0;width:100%;height:100%;background:var(--film)}
+.player .pwave{position:absolute;left:28px;right:28px;top:60px;display:none}
+.player.audio .pwave{display:block}
+.player.audio video{top:auto;height:86px;background:transparent}
+.player .drop,.xscreen .drop{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;border:4px dashed #56637C;border-radius:26px;color:var(--soft);font-size:26px;cursor:pointer;text-align:center;padding:40px}
+.player .drop b,.xscreen .drop b{font-size:38px;font-weight:650;color:#fff}
+.xscreen .drop{font-size:22px;border-radius:22px;padding:28px} .xscreen .drop b{font-size:30px}
+.player .drop code,.xscreen .drop code{font:inherit;color:var(--lblue)}
+.player .dico svg{width:84px;height:84px} .xscreen .dico svg{width:64px;height:64px}
+.player.empty .drop,.xscreen.empty .drop{display:flex}
+.player.empty video{display:none}
+
+/* ---------- real examples: rows that play your files, and a screen for the input video */
+.runs{display:flex;flex-direction:column;gap:16px;justify-content:center}
+.run{display:flex;align-items:center;gap:18px;width:100%;height:92px;padding:0 28px 0 14px;border-radius:46px;border:2px solid var(--ink);background:var(--ink);color:#fff;font-weight:650;font-size:32px;text-align:left;white-space:nowrap}
+.run .ico{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--ink);display:grid;place-items:center;flex:none}
+.run .ico svg{width:38px;height:38px}
+.run .rp{flex:1;min-width:30px;height:10px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}
+.run .rp i{display:block;height:100%;width:0;background:var(--lblue)}
+.run.alt{background:#fff;color:var(--ink)}
+.run.alt .ico{background:var(--ink);color:#fff}
+.run.alt .rp{background:var(--line)} .run.alt .rp i{background:var(--blue)}
+.run.empty{background:transparent;border:2px dashed #9AA5B8;color:var(--muted)}
+.run.empty .ico{background:transparent;color:#7E8AA0}
+.run.empty .rp{visibility:hidden}
+.run.playing{background:var(--rose);border-color:var(--rose);color:#fff}
+.run.playing .ico{background:#fff;color:var(--rose-t)}
+.run.playing .rp{background:rgba(255,255,255,.3)} .run.playing .rp i{background:#fff}
+.xscreen{position:relative;width:560px;height:420px;flex:none;border-radius:22px;overflow:hidden;background:var(--film)}
+.xscreen video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--film)}
+.xscreen.empty video{display:none}
+.xscreen video{cursor:pointer}
+.xplay{position:absolute;left:50%;top:50%;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:4px solid #fff;background:rgba(12,19,34,.72);color:#fff;display:grid;place-items:center;transition:opacity .15s}
+.xplay svg{width:68px;height:68px}
+.xscreen.on .xplay{opacity:0}
+.xscreen.on:hover .xplay,.xscreen .xplay:focus-visible{opacity:.92}
+.xbar{position:absolute;left:14px;right:14px;bottom:12px;height:8px;border-radius:4px;background:rgba(255,255,255,.3);overflow:hidden}
+.xbar i{display:block;height:100%;width:0;background:var(--rose)}
+.xchg{position:absolute;right:12px;top:12px;width:46px;height:46px;border-radius:50%;border:2px dashed rgba(255,255,255,.75);background:rgba(12,19,34,.6);color:#fff;display:grid;place-items:center;opacity:0;transition:opacity .15s}
+.xchg svg{width:26px;height:26px}
+.xscreen:hover .xchg,.xscreen .xchg:focus-visible{opacity:.92}
+.xscreen.empty .xplay,.xscreen.empty .xbar,.xscreen.empty .xchg{display:none}
+.xwarn{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;gap:14px;padding:70px 34px 34px;color:var(--soft);font-size:24px;line-height:1.3;background:var(--film)}
+.xwarn b{font-size:30px;font-weight:650;color:#fff}
+.xwarn code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:19px;color:var(--lblue);background:rgba(255,255,255,.08);padding:10px 12px;border-radius:8px;user-select:all}
+.xscreen.nopic .xwarn{display:flex}
+.xscreen.nopic .xplay,.xscreen.nopic .xbar{display:none}
+.xscreen.nopic .xchg{opacity:.92;z-index:2}
+.xtag{position:absolute;left:14px;top:14px;display:none;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:22px;background:rgba(12,19,34,.82);color:#fff;font-weight:650;font-size:22px}
+.xtag svg{width:26px;height:26px}
+.xscreen:not(.empty) .xtag{display:flex}
+.rhead{font-family:var(--hand);font-weight:600;font-size:40px;line-height:1;color:var(--muted)}
+.rhead.ref{color:var(--blue)}
+.rhead.gap{margin-top:22px}
+.novid{height:150px;flex:none}
+.novid .nofilm span{display:flex;align-items:center;gap:16px}
+.run.alt{border-color:var(--blue)}
+.tnum{width:48px;height:48px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-weight:650;font-size:24px;color:var(--muted)}
+
+/* ---------- slide-specific layout */
+.eq{display:flex;gap:20px;align-items:stretch}
+.tile{width:480px;padding:28px;display:flex;flex-direction:column;gap:20px}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.op{width:80px;display:grid;place-items:center;font-weight:500;font-size:88px;color:var(--muted)}
+.scenes{display:flex;gap:28px}
+.scene{flex:1;padding:24px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.scene h2{text-align:center;font-size:38px}
+.pic{position:relative;width:100%}
+.pic svg{width:100%;height:auto}
+.rec{position:absolute;right:12px;top:12px;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 10px;border-radius:20px;background:rgba(12,19,34,.86);color:#fff}
+.rec i{width:13px;height:13px;border-radius:50%;background:#FF4D6D}
+.rec svg{width:26px;height:26px}
+.dia{position:relative;flex:none}
+.side{flex:1;display:flex;flex-direction:column;gap:34px}
+.panel{flex:1;min-width:0;padding:36px;display:flex;flex-direction:column;gap:22px}
+.words{display:flex;gap:19px}
+.words>div{display:flex;flex-direction:column;align-items:center;gap:10px}
+.words em{font-style:italic;font-weight:650;font-size:44px}
+.pills{display:flex;flex-wrap:wrap;gap:12px}
+.chain{display:flex;gap:26px;align-items:center;justify-content:center}
+.chain>.col{display:flex;flex-direction:column;gap:16px;align-items:center}
+.model{padding:28px 30px;display:flex;flex-direction:column;gap:18px;align-items:center}
+.prog{width:100%;height:8px;border-radius:4px;background:var(--line)}
+.prog i{display:block;height:100%;width:0;border-radius:4px;background:var(--blue)}
+.ins{width:600px;display:flex;flex-direction:column;gap:22px;flex:none}
+.in{padding:22px 24px;display:flex;flex-direction:column;gap:10px}
+.note{font-size:26px;color:var(--muted)}
+.out{background:var(--ink);border-radius:28px;padding:32px 36px;display:flex;flex-direction:column;gap:14px;color:#fff}
+.knobrow{display:flex;justify-content:space-between}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--orange));margin-top:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:52px;height:52px;border-radius:50%;background:#fff;border:6px solid var(--ink);cursor:grab}
+input[type=range]::-moz-range-thumb{width:42px;height:42px;border-radius:50%;background:#fff;border:6px solid var(--ink);cursor:grab}
+.ba{display:flex;gap:48px;justify-content:center}
+.ba>div{display:flex;flex-direction:column;gap:14px}
+.why{display:flex;gap:28px}
+.why>div{flex:1;padding:44px 40px;display:flex;flex-direction:column;gap:20px}
+.why .wico{width:104px;height:104px;border-radius:50%;background:var(--band);color:var(--blue);display:grid;place-items:center}
+.why .wico svg{width:60px;height:60px}
+.why h2{font-size:58px}
+.pts{display:flex;flex-direction:column;gap:28px;flex:1;justify-content:center}
+.pt{display:flex;gap:26px;align-items:center}
+.pt .pico{width:88px;height:88px;border-radius:50%;background:var(--band);color:var(--blue);display:grid;place-items:center;flex:none}
+.pt .pico svg{width:50px;height:50px}
+.pt.next .pico{background:#FCE9D3;color:var(--orange-t)}
+.pt p{font-size:38px;font-weight:600;line-height:1.2}
+.box{position:absolute;border-radius:28px;background:#fff;border:4px solid var(--blue);padding:26px;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center}
+.tag{font-weight:650;font-size:24px;white-space:nowrap;padding:11px 18px;border-radius:30px;color:#fff}
+
+/* ---------- controls */
+#ui{position:fixed;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:15px;color:#C5CFDF;opacity:.5;transition:opacity .2s;z-index:20}
+#ui:hover,#ui:focus-within{opacity:1}
+#ui button{background:rgba(12,19,34,.85);border:1px solid #44506A;color:#fff;border-radius:8px;padding:6px 12px;font-size:15px}
+#ui.attn{opacity:1}
+#saveMsg:not(:empty){background:rgba(12,19,34,.85);color:#fff;padding:6px 10px;border-radius:8px}
+#ui #bSave.dirty{background:var(--rose);border-color:var(--rose)}
+#dots{display:flex;gap:7px}
+#dots i{width:9px;height:9px;border-radius:50%;background:#7C89A3;cursor:pointer}
+#dots i.on{background:#fff;transform:scale(1.35)}
+#nav{display:flex;gap:8px;align-items:center}
+#panel{position:fixed;inset:0;background:rgba(12,19,34,.9);z-index:30;display:grid;place-items:center;padding:24px}
+#panel[hidden]{display:none}
+#panel .sheet{background:#fff;border-radius:18px;padding:28px 32px;max-width:980px;width:100%;max-height:100%;overflow:auto;font-size:16px;line-height:1.45}
+#panel h3{font-size:24px;margin-bottom:6px}
+#panel table{border-collapse:collapse;width:100%;margin-top:14px}
+#panel td,#panel th{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:middle}
+#panel code{background:var(--bg);padding:2px 6px;border-radius:5px;font-size:14px}
+#panel .ok{color:#177245;font-weight:700} #panel .no{color:var(--muted)}
+#panel button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 12px;white-space:nowrap}
+/* Website links use the presentation's navigation styling. */
+#ui{flex-wrap:wrap;gap:8px}
+#ui a{background:rgba(12,19,34,.85);border:1px solid #44506A;color:#fff;border-radius:8px;padding:6px 12px;font-size:15px;text-decoration:none}
+#ui a:focus-visible{outline:4px solid var(--rose);outline-offset:3px}
+@media(max-width:900px){#dots{order:3;flex-basis:100%;justify-content:center}#ui button,#ui a{font-size:12px;padding:5px 8px}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ui">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="/projects/">Projets</a><a href="../" hreflang="en" lang="en">English</a><button id="bMedia" title="Liste des fichiers son et vidéo de cette présentation (M)">Fichiers média</button><button id="bSave" title="Télécharger une copie de cette page qui contient les fichiers choisis">Enregistrer une copie avec mes fichiers</button><span id="saveMsg"></span></div>
+  <div id="dots"></div>
+  <div id="nav"><span id="count"></span><button id="bPrev" aria-label="Diapositive précédente">‹</button><button id="bNext" aria-label="Diapositive suivante">›</button><button id="bFull" title="Plein écran (F)">Plein écran</button></div>
+</div>
+<div id="panel" hidden=""><div class="sheet"></div></div>
+<input type="file" id="file" accept="audio/*,video/*" hidden="">
+<input type="file" id="imp" accept=".html,.htm,text/html" hidden="">
+
+<script>
+const PRISTINE='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Files stored inside this page by the "Save a copy with my files" button. Leave this line as it is. */
+/*EMBED-START*/const EMBED={};/*EMBED-END*/
+// Shared assets extracted from the original saved presentation.
+const MEDIA_FILES={
+  "clean": "clean.wav",
+  "noise": "noise.wav",
+  "noisy": "noisy.wav",
+  "random_1": "random_1.wav",
+  "random_2": "random_2.wav",
+  "silent": "silent.mp4",
+  "reference": "reference.wav",
+  "synced_1": "synced_1.wav",
+  "synced_2": "synced_2.wav",
+  "demo_before": "demo_before.mp4",
+  "demo_after": "demo_after.mp4"
+};
+/* =====================================================================
+   1. YOUR SOUNDS AND VIDEOS
+   Put your files in a folder named "media" next to this HTML file,
+   using the names below with any of these endings:
+   .mp4 .webm .mov .m4v .wav .mp3 .m4a .ogg
+   Example: media/noisy.wav, media/silent.mp4
+   Or skip the folder: choose or drop files on the slides, then press
+   "Save a copy with my files" (bottom left). The downloaded HTML carries
+   those files inside it; open that copy from then on.
+   Missing files are fine: the drawings stay, and the play buttons turn
+   into "+" buttons that let you pick a file for the current session.
+   Every slot below is independent: a file given to one slide is never
+   used on another. To show the same clip in several places, give those
+   entries the same "file" name (you may include the ending).
+   ===================================================================== */
+const MEDIA_DIR = "../media/";
+const MEDIA = {
+  video_cover:   {file:"video_cover",   what:"Vidéo d’une personne qui parle, pour le titre (sans le son)", where:"diapo 1"},
+  clean:         {file:"clean",         what:"La voix propre, seule (son)", where:"diapo 2"},
+  noise:         {file:"noise",         what:"Le bruit, seul (son)", where:"diapo 2"},
+  noisy:         {file:"noisy",         what:"Le mélange voix + bruit (son)", where:"diapo 2"},
+  video_camera:  {file:"video_camera",  what:"Ce que la caméra voit (sans le son)", where:"diapo 4"},
+  video_step1:   {file:"video_step1",   what:"La vidéo muette donnée au modèle (sans le son)", where:"diapo 7"},
+  voice_step1:   {file:"voice_step1",   what:"La voix générée pour la vidéo de la diapo 7 (son)", where:"diapo 7"},
+  silent:        {file:"silent",        what:"La vidéo muette des vrais exemples", where:"diapo 9"},
+  random_1:      {file:"random_1",      what:"Parole générée sans vidéo, essai 1 (son)", where:"diapo 9"},
+  random_2:      {file:"random_2",      what:"Parole générée sans vidéo, essai 2 (son)", where:"diapo 9"},
+  synced_1:      {file:"synced_1",      what:"Parole générée avec la vidéo de la diapo 9, essai 1 (le son seul, ou la vidéo avec ce son)", where:"diapo 9"},
+  synced_2:      {file:"synced_2",      what:"Parole générée avec la vidéo de la diapo 9, essai 2 (idem)", where:"diapo 9"},
+  reference:     {file:"reference",     what:"Le vrai enregistrement, comme référence : la vidéo de la diapo 9 avec son propre son (ou ce son seul)", where:"diapo 9"},
+  enhanced:      {file:"enhanced",      what:"La voix nettoyée (son)", where:"diapo 10"},
+  demo_before:   {file:"demo_before",   what:"Avant : l’enregistrement bruité (vidéo ou son)", where:"diapo 11"},
+  demo_after:    {file:"demo_after",    what:"Après : le résultat nettoyé (vidéo ou son)", where:"diapo 11"},
+  picture_voice: {file:"picture_voice", what:"La voix propre de l’image finale (son)", where:"diapo 14"},
+  video_picture: {file:"video_picture", what:"Vidéo des lèvres pour l’image finale (sans le son)", where:"diapo 14"}
+};
+const EXT = ["mp4","webm","mov","m4v","wav","mp3","m4a","ogg"];
+
+/* =====================================================================
+   2. DRAWING HELPERS
+   ===================================================================== */
+const C={ink:'#131C2E',bg:'#F2F5F9',card:'#FFFFFF',line:'#D5DCE6',muted:'#5A6578',blue:'#1F5FD0',orange:'#F08A24',rose:'#D1486A',skin:'#FFDDBF',lblue:'#9CC4FF',scene:'#E3E9F2'};
+const SEG=[[.04,.30],[.40,.62],[.70,.96]];
+const f=x=>+(+x).toFixed(1);
+function rng(seed){let s=(seed*2654435761)>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+/* mouth opening at time t (0..1): syllables inside each speaking segment, closed in the pauses */
+function opn(t,segs=SEG,ph=0){for(const[s,e]of segs){if(t>=s&&t<=e){const u=(t-s)/(e-s),syl=Math.max(2,Math.round((e-s)*14));return Math.pow(Math.sin(Math.PI*u),.45)*(.3+.7*Math.abs(Math.sin(u*Math.PI*syl+ph)))}}return 0}
+function env(n,segs,seed,ph=0){const r=rng(seed),o=[];for(let i=0;i<n;i++){const a=opn((i+.5)/n,segs,ph);o.push(a>0?Math.max(.06,a*(.7+.3*r())):.035)}return o}
+function nenv(n,seed,lo=.5){const r=rng(seed),o=[];for(let i=0;i<n;i++)o.push(lo+(1-lo)*r());return o}
+function bars(x0,ym,w,hs,col,mh,bwf=.6,op,cls){const p=w/hs.length,bw=p*bwf;return hs.map((h,i)=>{const hh=Math.max(2.5,h*mh);return `<rect${cls?` class="${cls}"`:''} x="${f(x0+i*p+(p-bw)/2)}" y="${f(ym-hh)}" width="${f(bw)}" height="${f(2*hh)}" rx="${f(bw/2)}" fill="${col}"${op?` opacity="${op}"`:''}/>`}).join('')}
+function mouth(cx,cy,w,o,talk,mode){const ry=w*(.17+.25*o),iry=Math.max(1.4,w*(.015+.19*o));
+  return `<g${talk?` class="talk" data-w="${f(w)}" data-mode="${mode||''}"`:''}><ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(w/2)}" ry="${f(ry)}" fill="${C.rose}"/><ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(w*.36)}" ry="${f(iry)}" fill="#3A1626"/></g>`}
+function bust(cx,cy,r,o,{shirt=C.blue,bottom,talk=false,mode=''}={}){const b=bottom??cy+2.3*r;
+  let s=`<path d="M ${f(cx-1.25*r)} ${f(b)} Q ${f(cx-1.25*r)} ${f(cy+1.12*r)} ${f(cx)} ${f(cy+1.05*r)} Q ${f(cx+1.25*r)} ${f(cy+1.12*r)} ${f(cx+1.25*r)} ${f(b)} Z" fill="${shirt}"/>`;
+  s+=`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="${C.skin}" stroke="${C.ink}" stroke-width="${f(Math.max(2,r/14))}"/>`;
+  for(const sx of[-1,1])s+=`<circle cx="${f(cx+sx*.36*r)}" cy="${f(cy-.18*r)}" r="${f(Math.max(1.6,.085*r))}" fill="${C.ink}"/>`;
+  return s+mouth(cx,cy+.46*r,.62*r,o,talk,mode)}
+function zig(x,y,len,amp,n,angle=0,color=C.orange,sw=5){const pts=[];for(let i=0;i<=n;i++)pts.push(f(x+len*i/n)+','+f(y+((i===0||i===n)?0:(i%2?amp:-amp))));
+  return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${angle} ${f(x)} ${f(y)})"/>`}
+function arcs(cx,cy,r0,n,dir=0,color=C.blue,sw=5,span=42,step=14){let s='';for(let i=0;i<n;i++){const r=r0+i*step,a1=(dir-span)*Math.PI/180,a2=(dir+span)*Math.PI/180;
+  s+=`<path d="M ${f(cx+r*Math.cos(a1))} ${f(cy+r*Math.sin(a1))} A ${f(r)} ${f(r)} 0 0 1 ${f(cx+r*Math.cos(a2))} ${f(cy+r*Math.sin(a2))}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`}return s}
+function arrow(x1,y1,x2,y2,color=C.ink,sw=5,head=16){const a=Math.atan2(y2-y1,x2-x1),bx=x2-head*Math.cos(a),by=y2-head*Math.sin(a),px=-Math.sin(a)*head*.6,py=Math.cos(a)*head*.6;
+  return `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(bx)}" y2="${f(by)}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/><polygon points="${f(x2)},${f(y2)} ${f(bx+px)},${f(by+py)} ${f(bx-px)},${f(by-py)}" fill="${color}"/>`}
+function mixColor(c1,c2,t){const a=[1,3,5].map(i=>parseInt(c1.slice(i,i+2),16)),b=[1,3,5].map(i=>parseInt(c2.slice(i,i+2),16));return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*t).toString(16).padStart(2,'0')).join('')}
+
+const IC={
+  play:'<path d="M8 5.2v13.6L19 12z" fill="currentColor"/>',
+  pause:'<path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/>',
+  plus:'<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor"/>',
+  video:'<rect x="2.5" y="5" width="19" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.8v6.4l5.4-3.2z" fill="currentColor"/>',
+  audio:'<path d="M4 9.2v5.6h3.6L12.5 19V5L7.6 9.2z" fill="currentColor"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  mute:'<path d="M4 9.2v5.6h3.6L12.5 19V5L7.6 9.2z" fill="currentColor"/><path d="M16 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21M9 21h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  cam:'<rect x="2" y="6.5" width="13.5" height="11" rx="3" fill="currentColor"/><path d="M15.5 10.6L22 7v10l-6.5-3.6z" fill="currentColor"/>',
+  bulb:'<path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9.6 19h4.8M10.5 21.5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l5.5 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+  globe:'<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 12h17M12 3.5c3 3 3 14 0 17M12 3.5c-3 3-3 14 0 17" fill="none" stroke="currentColor" stroke-width="2"/>'
+};
+IC.camoff=IC.cam+'<path d="M3 3l18 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>';
+IC.bolt='<path d="M13.5 2L5 13.6h5.6L9.6 22 19 9.9h-5.9z" fill="currentColor"/>';
+IC.small='<path d="M4 4l6 6M10 5v5H5M20 20l-6-6M14 19v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+IC.eyeoff='<path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.8" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>';
+IC.users='<circle cx="9" cy="8" r="3.2" fill="currentColor"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0z" fill="currentColor"/><circle cx="17.2" cy="9" r="2.6" fill="currentColor"/><path d="M15.4 13.4a5.4 5.4 0 0 1 6.6 5.3V20h-4.3a8.4 8.4 0 0 0-2.3-6.6z" fill="currentColor"/>';
+const ico=(n,a='')=>`<svg viewBox="0 0 24 24" ${a}>${IC[n]}</svg>`;
+
+/* ---------- components */
+function wave({w,h,kind='speech',n,seed=5,segs=SEG,ph=0}){const mh=h/2-6,ym=h/2;n=n||Math.round(w/9.5);let g='';
+  if(kind==='speech')g=bars(0,ym,w,env(n,segs,seed,ph),C.blue,mh);
+  else if(kind==='light')g=bars(0,ym,w,env(n,segs,seed,ph),C.lblue,mh);
+  else if(kind==='noise')g=bars(0,ym,w,nenv(n,seed),C.orange,mh,.72);
+  else if(kind==='mixed')g=bars(0,ym,w,nenv(n,seed+7),C.orange,mh,.72)+bars(0,ym,w,env(n,segs,seed,ph).map(v=>v*.8),C.blue,mh,.36);
+  else if(kind==='ghost')g=[41,42,43].map((s,i)=>bars(0,ym,w,env(n,segs,s,i*.9),C.blue,mh,.6,.38)).join('');
+  return `<svg class="wave" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${g}</svg>`}
+function vid({w=440,slot=null,sm=false,mode='',mute=false,zoom=false}={}){
+  const face=zoom
+    ?`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="${C.skin}"/><path d="M 176 62 Q 200 86 224 62" fill="none" stroke="${C.ink}" stroke-width="6" stroke-linecap="round"/>${mouth(200,178,176,.1,true,mode)}</svg>`
+    :`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="#FFF3E4"/><circle cx="345" cy="50" r="95" fill="#FFE7CD"/>${bust(200,128,74,.5,{bottom:300,talk:true,mode})}</svg>`;
+  return `<div class="vid${sm?' sm':''}" style="width:${w}px"><div class="screen"${slot?` data-slot="${slot}" data-ui="screen"`:''}>${face}${slot?'<video muted loop playsinline></video>':''}<span class="vbadge">${ico('play')}</span>${mute?`<span class="vmute">${ico('mute')}</span>`:''}<div class="scrub"><i></i></div>${slot?`<button class="vadd" data-pick="${slot}" title="Mettre votre propre vidéo ici">${ico('plus')}</button>`:''}</div></div>`}
+function film({n=10,h=110,segs=SEG}={}){let t='';for(let i=0;i<n;i++)t+=`<svg viewBox="0 0 80 64" preserveAspectRatio="xMidYMid slice"><rect width="80" height="64" fill="#FFF3E4"/>${bust(40,25,21,opn((i+.5)/n,segs),{bottom:64})}</svg>`;
+  return `<div class="film" style="height:${h}px">${t}</div>`}
+function chip(slot,label,{mini=false,light=false,sync=''}={}){return `<button class="chip empty${mini?' mini':''}${light?' light':''}" data-slot="${slot}" data-ui="chip" data-label="${label}"${sync?` data-sync="${sync}"`:''}><span class="ico">${ico('plus')}</span>${mini?'':'<span class="lab">ajouter un son</span>'}</button>`}
+function player(slot,kind){return `<div class="player empty" data-slot="${slot}" data-ui="player"><div class="pwave">${wave({w:760,h:280,kind,n:70})}</div><video controls playsinline preload="metadata"></video><div class="drop" data-pick="${slot}"><span class="dico">${ico('video')}</span><b>Déposez une vidéo ou un son ici</b><span>ou cliquez pour choisir un fichier, ou enregistrez-le sous <code>${MEDIA_DIR}${MEDIA[slot].file}.mp4</code></span></div></div>`}
+const lab=k=>`<span class="tico">${ico(k)}</span>`;
+function tl(rows,{bands='',playhead=true,gap=12}={}){
+  return `<div class="tl"><div class="tll" style="gap:${gap}px">${rows.map(r=>`<div class="tlc" style="height:${r.h}px">${r.label}</div>`).join('')}</div><div class="tlt" style="gap:${gap}px">${bands}${rows.map(r=>`<div class="tlr" style="height:${r.h}px">${r.track}</div>`).join('')}${playhead?'<div class="playhead"></div>':''}</div></div>`}
+
+/* =====================================================================
+   3. THE SLIDES
+   ===================================================================== */
+const slides=[];
+const S=(id,cls,html)=>slides.push({id,cls,html});
+
+/* 1. cover */
+S('cover','dark',`
+<p class="step" style="color:var(--lorange)">Projet ANR REAVISE</p>
+<h1 class="big">Entendre une voix<br>malgré le bruit</h1>
+<p class="cap" style="width:1000px;margin-top:36px">Nettoyer la parole en <b>regardant la vidéo de la personne qui parle</b>, pas seulement en écoutant.</p>
+<p style="font-size:28px;color:var(--soft);margin-top:28px">Mostafa Sadeghi, équipe Multispeech, Inria</p>
+<div style="position:absolute;right:120px;top:104px">${vid({w:500,slot:'video_cover',mute:true})}</div>
+<svg id="coverwave" viewBox="0 0 1920 330" width="1920" height="330" style="position:absolute;left:0;bottom:0"></svg>`);
+
+/* 2. the problem */
+const tile=(kind,label,slot)=>`<div class="card tile">${wave({w:420,h:240,kind,n:44})}<div class="trow"><h2>${label}</h2>${chip(slot,'',{mini:true})}</div></div>`;
+S('problem','',`<h1>La parole arrive rarement seule</h1>
+<div class="body">
+<div class="eq">${tile('speech','Une voix','clean')}<div class="op">+</div>${tile('noise','Du bruit','noise')}<div class="op">=</div>${tile('mixed','Le mélange','noisy')}</div>
+<p class="cap center">Le but : <b>retrouver la voix.</b></p>
+</div>`);
+
+/* 3. where it matters */
+const SW=328,SH=200,X=164,sbg=`<rect width="${SW}" height="${SH}" rx="16" fill="${C.scene}"/>`;
+const sc1=sbg+`<rect x="84" y="28" width="160" height="110" rx="10" fill="#fff" stroke="${C.ink}" stroke-width="4"/>`+bust(X,76,25,.75,{bottom:134})+`<rect x="60" y="142" width="208" height="13" rx="6.5" fill="${C.ink}"/>`+zig(14,62,46,9,5,18)+zig(18,112,40,9,5,-14)+zig(272,56,44,9,5,-18)+zig(276,110,40,9,5,14)+zig(120,178,88,7,8,0);
+const sc2=sbg+`<circle cx="${X-58}" cy="104" r="11" fill="${C.skin}" stroke="${C.ink}" stroke-width="3"/><circle cx="${X+58}" cy="104" r="11" fill="${C.skin}" stroke="${C.ink}" stroke-width="3"/><path d="M ${X-70} 200 Q ${X-70} 166 ${X} 162 Q ${X+70} 166 ${X+70} 200 Z" fill="${C.blue}"/><circle cx="${X}" cy="100" r="58" fill="${C.skin}" stroke="${C.ink}" stroke-width="4"/><rect x="${X-48}" y="74" width="42" height="30" rx="11" fill="#DCEBFA" stroke="${C.ink}" stroke-width="4"/><rect x="${X+6}" y="74" width="42" height="30" rx="11" fill="#DCEBFA" stroke="${C.ink}" stroke-width="4"/><line x1="${X-6}" y1="86" x2="${X+6}" y2="86" stroke="${C.ink}" stroke-width="4"/><circle cx="${X}" cy="78" r="4.5" fill="${C.rose}"/><circle cx="${X-27}" cy="90" r="4" fill="${C.ink}"/><circle cx="${X+27}" cy="90" r="4" fill="${C.ink}"/>`+mouth(X,130,30,.12)+`<ellipse cx="${X+62}" cy="106" rx="6" ry="11" fill="${C.blue}" stroke="${C.ink}" stroke-width="2"/>`+arcs(18,104,12,3,0,C.blue,5,40,13)+zig(250,150,46,9,5,-16)+zig(20,36,50,9,6,-14)+zig(22,170,44,8,5,10);
+const sc3=sbg+`<rect x="44" y="22" width="240" height="156" rx="12" fill="#fff" stroke="${C.ink}" stroke-width="4"/>`+bust(X,66,23,.7,{bottom:120})+`<rect x="62" y="126" width="204" height="40" rx="8" fill="${C.ink}"/><rect x="76" y="137" width="58" height="6" rx="3" fill="#fff"/><rect x="142" y="137" width="40" height="6" rx="3" fill="#fff"/>`+zig(192,140,56,4,8,0,C.orange,3.5)+`<rect x="76" y="151" width="34" height="6" rx="3" fill="#fff"/>`+zig(118,154,44,4,6,0,C.orange,3.5)+`<rect x="170" y="151" width="62" height="6" rx="3" fill="#fff"/>`;
+const sc4=sbg+zig(22,30,60,8,6,8)+zig(250,150,50,8,5,12)+zig(18,168,44,8,5,-10)+bust(112,92,34,.8,{bottom:200})+`<line x1="186" y1="190" x2="158" y2="140" stroke="${C.ink}" stroke-width="9" stroke-linecap="round"/><circle cx="153" cy="131" r="14" fill="${C.muted}" stroke="${C.ink}" stroke-width="3"/><line x1="268" y1="112" x2="246" y2="186" stroke="${C.ink}" stroke-width="4" stroke-linecap="round"/><line x1="268" y1="112" x2="292" y2="186" stroke="${C.ink}" stroke-width="4" stroke-linecap="round"/><rect x="236" y="62" width="72" height="50" rx="8" fill="${C.ink}"/><circle cx="236" cy="87" r="17" fill="#fff" stroke="${C.ink}" stroke-width="4"/><circle cx="236" cy="87" r="7" fill="${C.blue}"/>`;
+const scene=(g,label)=>`<div class="card scene"><div class="pic"><svg viewBox="0 0 ${SW} ${SH}">${g}</svg><span class="rec"><i></i>${ico('cam')}</span></div><h2>${label}</h2></div>`;
+S('scenes','',`<h1>Mauvais son, mais on voit le visage</h1>
+<div class="body"><div class="scenes">${scene(sc1,'Appels vidéo')}${scene(sc2,'Lunettes auditives')}${scene(sc3,'Sous-titres en direct')}${scene(sc4,'Reportages')}</div></div>`);
+
+/* 4. the clue */
+S('camera','',`<h1>Le bruit n’atteint jamais la caméra</h1>
+<div class="body"><div class="row" style="gap:50px;align-items:center">
+<div class="dia" style="width:1100px;height:610px">
+<svg viewBox="0 0 1100 610" width="1100" height="610" style="position:absolute;left:0;top:0">
+${zig(14,96,96,12,7,24)}${zig(206,58,84,11,6,-22)}${zig(8,470,80,11,6,-18)}${zig(262,540,70,10,5,14)}
+${bust(160,290,96,.5,{talk:true})}${arcs(262,336,18,3,0,C.blue,6,40,16)}
+<path d="M 330 322 C 400 322 380 160 444 160" fill="none" stroke="${C.muted}" stroke-width="4" stroke-dasharray="3 11" stroke-linecap="round"/>
+<path d="M 330 350 C 400 350 380 450 444 450" fill="none" stroke="${C.muted}" stroke-width="4" stroke-dasharray="3 11" stroke-linecap="round"/>
+<circle cx="490" cy="160" r="42" fill="${C.ink}"/>${ico('mic','x="464" y="134" width="52" height="52" color="#fff"')}
+<circle cx="490" cy="450" r="42" fill="${C.ink}"/>${ico('cam','x="464" y="424" width="52" height="52" color="#fff"')}
+</svg>
+<p class="hand o nw" style="position:absolute;left:566px;top:22px">le micro : voix + bruit</p>
+<div class="trk" style="position:absolute;left:566px;top:92px;width:520px;height:140px">${wave({w:520,h:140,kind:'mixed'})}<div class="playhead"></div></div>
+<div style="position:absolute;left:566px;top:304px">${vid({w:336,slot:'video_camera',mute:true})}</div>
+<p class="hand r" style="position:absolute;left:926px;top:372px;width:174px">la caméra : lèvres intactes</p>
+</div>
+<div class="side"><p class="cap"><b>Nous lisons tous sur les lèvres</b> quand il y a du bruit.</p><p class="cap">Une machine peut apprendre à faire pareil.</p></div>
+</div></div>`);
+
+/* 5. what lips give */
+S('lips','',`<h1>Les lèvres : le rythme, pas les mots</h1>
+<div class="body"><div class="row" style="gap:28px;align-items:stretch">
+<div class="card panel" style="flex:none;width:1010px">
+<h2 style="color:var(--blue)">Le rythme : oui</h2>
+${tl([{h:150,label:lab('video'),track:film({n:10,h:150})},{h:200,label:lab('audio'),track:wave({w:854,h:200,kind:'speech'})}],{gap:18})}
+<p class="hand b">le son suit la bouche, avec les pauses</p>
+</div>
+<div class="card panel">
+<h2 style="color:var(--rose-t)">Les mots : non</h2>
+<div class="words">${['pain','bain','main'].map(w=>`<div>${vid({w:176,sm:true,mode:'pop',zoom:true})}<em>&ldquo;${w}&rdquo;</em></div>`).join('')}</div>
+<p class="hand r">trois mots, le même mouvement des lèvres</p>
+</div>
+</div></div>`);
+
+/* 6. two ways */
+function waveCards(x0,y0,w,h,kind,mh,n){let g='';for(let k=0;k<2;k++){const x=x0+k*14,y=y0+k*14;g+=`<rect x="${x+1}" y="${y+1}" width="${w}" height="${h}" rx="13" fill="#fff" stroke="${C.line}" stroke-width="2"/>`+(kind==='noisy'?bars(x+11,y+h/2+1,w-20,nenv(n,k+3),C.orange,mh,.72)+bars(x+11,y+h/2+1,w-20,env(n,SEG,k+5).map(v=>v*.8),C.blue,mh,.36):bars(x+11,y+h/2+1,w-20,env(n,SEG,k+5),C.blue,mh))}return g}
+function miniClips(x0,y0){let g='';for(let k=0;k<2;k++){const x=x0+k*14,y=y0+k*12;g+=`<rect x="${x}" y="${y}" width="106" height="72" rx="10" fill="#0C1322"/><rect x="${x+6}" y="${y+6}" width="94" height="60" rx="6" fill="#FFF3E4"/>`+bust(x+58,y+30,15,.6,{bottom:y+66})+`<circle cx="${x+20}" cy="${y+20}" r="10" fill="#0C1322"/><path d="M ${x+17} ${y+14.5} v11 l8.5 -5.5 z" fill="#fff"/>`}return g}
+function net(){const L=[[292,[36,80,124,168]],[373,[14,58,102,146,190]],[454,[36,80,124,168]]];let g='';for(let a=0;a<2;a++)for(const y1 of L[a][1])for(const y2 of L[a+1][1])g+=`<line x1="${L[a][0]}" y1="${y1}" x2="${L[a+1][0]}" y2="${y2}" stroke="#B4BDCB" stroke-width="2"/>`;for(const[x,ys]of L)for(const y of ys)g+=`<circle cx="${x}" cy="${y}" r="12" fill="${C.ink}"/>`;return g}
+function clips(){let g='';for(let k=0;k<3;k++){const x=k*34,y=k*40;g+=`<rect x="${x}" y="${y}" width="200" height="132" rx="14" fill="#0C1322"/><rect x="${x+10}" y="${y+10}" width="180" height="112" rx="8" fill="#FFF3E4"/>`+bust(x+100,y+52,26,.6,{bottom:y+122})+`<circle cx="${x+34}" cy="${y+34}" r="16" fill="#0C1322"/><path d="M ${x+29} ${y+25} v18 l14 -9 z" fill="#fff"/>`}return g}
+S('ways','',`<h1>Deux façons d’entraîner la machine</h1>
+<div class="body"><div class="row" style="gap:28px;align-items:stretch">
+<div class="card panel">
+<h2>Les systèmes actuels</h2>
+<svg viewBox="0 0 746 266" width="746" height="266" style="overflow:visible">${waveCards(0,10,168,62,'noisy',21,16)}${miniClips(36,114)}<path d="M 190 48 H 204 Q 214 48 214 58 V 146 Q 214 156 204 156 H 164" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/>${arrow(214,102,266,102)}${net()}${arrow(480,102,526,102)}${waveCards(540,43,176,76,'clean',26,17)}<text x="98" y="234" text-anchor="middle" font-size="26" font-weight="650" fill="${C.ink}">parole bruitée</text><text x="98" y="262" text-anchor="middle" font-size="26" font-weight="650" fill="${C.ink}">+ vidéo</text><text x="373" y="234" text-anchor="middle" font-size="26" font-weight="650" fill="${C.ink}">un grand réseau</text><text x="635" y="234" text-anchor="middle" font-size="26" font-weight="650" fill="${C.ink}">parole propre</text></svg>
+<p class="hand o">apprendre avec des exemples bruités et leurs réponses</p>
+<div class="pills"><span class="pill">bruit artificiel</span><span class="pill">modèles énormes</span><span class="pill">perdu face à un nouveau bruit</span></div>
+</div>
+<div class="card panel" style="border-color:var(--blue)">
+<h2 style="color:var(--blue)">REAVISE</h2>
+<svg viewBox="0 0 746 266" width="746" height="266">${clips()}${arrow(292,110,346,110)}
+<rect x="376" y="25" width="170" height="170" rx="30" fill="${C.blue}"/>${bars(394,110,134,env(14,SEG,5),C.lblue,58)}
+<text x="461" y="232" text-anchor="middle" font-size="26" font-weight="650" fill="${C.ink}">modèle de parole</text>
+<text x="590" y="130" text-anchor="middle" font-size="60" font-weight="500" fill="${C.muted}">+</text>
+<rect x="632" y="55" width="110" height="110" rx="24" fill="none" stroke="${C.orange}" stroke-width="4" stroke-dasharray="9 8"/>${zig(652,110,70,12,6,0,C.orange,5)}
+<text x="687" y="202" text-anchor="middle" font-size="24" font-weight="650" fill="${C.ink}">bruit,</text><text x="687" y="232" text-anchor="middle" font-size="24" font-weight="650" fill="${C.ink}">plus tard</text></svg>
+<p class="hand b">apprendre ce qu’est la parole, avec des vidéos propres</p>
+<div class="pills"><span class="pill">pas de bruit à l’entraînement</span><span class="pill">bruit traité à l’utilisation</span></div>
+</div>
+</div></div>`);
+
+/* 7. step 1 */
+S('step1','',`<p class="step">Étape 1 : apprendre</p><h1>D’une vidéo muette à une voix</h1>
+<div class="body">
+<div class="chain">
+<div class="col"><p class="hand r">une vidéo muette</p>${vid({w:420,slot:'video_step1',mute:true})}</div>
+<svg viewBox="0 0 70 40" width="70" height="40">${arrow(4,20,66,20)}</svg>
+<div class="col"><p class="hand" style="color:var(--muted)">le hasard devient parole</p>
+<div class="card model" style="width:520px"><svg id="diff" viewBox="0 0 456 210" width="456" height="210"></svg><div class="prog"><i id="diffp"></i></div><span class="pill">appris sur des vidéos propres</span></div></div>
+<svg viewBox="0 0 70 40" width="70" height="40">${arrow(4,20,66,20)}</svg>
+<div class="col"><p class="hand b">une voix synchronisée</p>
+<div class="card model" style="width:440px"><div class="trk" style="width:376px;height:170px">${wave({w:376,h:170,kind:'speech'})}<div class="playhead"></div></div>${chip('voice_step1','écouter',{sync:'video_step1'})}</div></div>
+</div>
+<p class="cap center">Comme un générateur d’images, mais la consigne est <b>une vidéo</b> et le résultat est <b>une voix</b>.</p>
+</div>`);
+
+/* 8. with and without video */
+const TW=670,RND=[[[.10,.45],[.58,.90]],[[.02,.20],[.30,.52],[.66,.80]],[[.22,.70],[.80,.98]]];
+const bandsHtml=SEG.map(([s,e])=>`<div class="band" style="left:${s*100}%;width:${(e-s)*100}%;top:108px"></div>`).join('');
+S('video','',`<h1>La vidéo garde la voix en rythme</h1>
+<div class="body"><div class="row" style="gap:28px;align-items:stretch">
+<div class="card panel">
+<h2>Sans la vidéo</h2>
+${tl([{h:96,label:lab('camoff'),track:`<div class="nofilm">pas de vidéo</div>`},...RND.map((sg,i)=>({h:78,label:`<span class="tnum">${i+1}</span>`,track:wave({w:TW,h:78,kind:'speech',segs:sg,seed:31+i})}))],{playhead:false})}
+<p class="hand" style="color:var(--muted)">une phrase différente à chaque fois</p>
+</div>
+<div class="card panel" style="border-color:var(--blue)">
+<h2 style="color:var(--blue)">Avec la vidéo</h2>
+${tl([{h:96,label:lab('video'),track:film({n:9,h:96})},...[0,1,2].map(i=>({h:78,label:`<span class="tnum">${i+1}</span>`,track:wave({w:TW,h:78,kind:'speech',seed:41+i,ph:i*.7})}))],{bands:bandsHtml})}
+<p class="hand b">le même rythme à chaque fois (les mots peuvent changer)</p>
+</div>
+</div></div>`);
+
+/* 9. real examples */
+const run=(slot,label,opt='')=>`<button class="run empty${opt.includes('alt')?' alt':''}" data-slot="${slot}" data-ui="run" data-label="${label}"${opt.includes('with')?' data-with="1"':''}><span class="ico">${ico('plus')}</span><span class="lab">${label}</span><span class="rp"><i></i></span></button>`;
+S('examples','',`<h1>Et maintenant, de vrais exemples</h1>
+<div class="body"><div class="row" style="gap:28px;align-items:stretch">
+<div class="card panel" style="flex:none;width:580px">
+<h2>Sans la vidéo</h2>
+<div class="novid"><div class="nofilm"><span>${ico('camoff')}pas de vidéo</span></div></div>
+<div class="runs" style="flex:1"><p class="rhead">généré par le modèle</p>${[1,2].map(k=>run('random_'+k,'Essai '+k)).join('')}</div>
+<p class="hand" style="color:var(--muted)">deux essais, deux phrases différentes</p>
+</div>
+<div class="card panel" style="border-color:var(--blue)">
+<h2 style="color:var(--blue)">Avec la vidéo</h2>
+<div class="row" style="gap:32px;align-items:center;flex:1">
+<div class="xscreen empty" data-slot="silent" data-ui="xscreen"><video playsinline preload="auto"></video><span class="xtag" id="xtag">${ico('mute')}<span>entrée muette</span></span><button class="xplay" id="xplay" aria-label="Lire la vidéo muette">${ico('play')}</button><button class="xchg" data-pick="silent" title="Choisir une autre vidéo" aria-label="Choisir une autre vidéo">${ico('plus')}</button><div class="xbar"><i id="xbar"></i></div><div class="xwarn"><b>Le navigateur ne peut pas afficher l’image de cette vidéo.</b><span>Son encodage n’est pas pris en charge. Convertissez-la, puis choisissez-la de nouveau :</span><code>ffmpeg -i input.mp4 -c:v libx264 -pix_fmt yuv420p output.mp4</code></div><div class="drop" data-pick="silent"><span class="dico">${ico('video')}</span><b>Déposez la vidéo muette ici</b><span>ou cliquez pour la choisir, ou enregistrez-la sous <code>${MEDIA_DIR}${MEDIA.silent.file}.mp4</code></span></div></div>
+<div class="runs" style="flex:1;min-width:0"><p class="rhead ref">le vrai enregistrement</p>${run('reference','Voix originale','alt with')}<p class="rhead gap">généré par le modèle</p>${[1,2].map(k=>run('synced_'+k,'Essai '+k,'with')).join('')}</div>
+</div>
+<p class="hand b">mêmes lèvres : la vraie voix et deux voix générées</p>
+</div>
+</div></div>`);
+
+/* 10. step 2 */
+S('step2','',`<p class="step">Étape 2 : utiliser</p><h1>On ajoute l’enregistrement bruité</h1>
+<div class="body"><div class="row" style="gap:20px;align-items:center">
+<div class="ins">
+<div class="card in"><p class="hand b">ce qui est possible</p>${film({n:9,h:62})}${wave({w:548,h:96,kind:'ghost'})}<p class="note">le modèle de parole, guidé par la vidéo</p></div>
+<div class="card in"><p class="hand o">ce qu’on a entendu</p>${wave({w:548,h:104,kind:'mixed',seed:41})}<p class="note">l’enregistrement, avec un modèle de bruit appris sur le moment</p></div>
+</div>
+<svg viewBox="0 0 110 420" width="110" height="420"><path d="M 6 100 C 70 100 40 210 92 210" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/><path d="M 6 320 C 70 320 40 210 92 210" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/><polygon points="108,210 90,199 90,221" fill="${C.ink}"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:22px">
+<div class="out"><p class="hand l">la voix nettoyée</p><svg id="outw" viewBox="0 0 838 220" width="838" height="220"></svg>
+<div class="trow"><p class="hand" id="knobmsg" style="font-size:42px;color:#fff"></p>${chip('enhanced','écouter',{light:true})}</div></div>
+<div><div class="knobrow"><p class="hand b">confiance au modèle</p><p class="hand o">confiance au micro</p></div>
+<input type="range" id="knob" min="0" max="100" value="50" aria-label="Équilibre entre le modèle de parole et le micro"></div>
+</div>
+</div></div>`);
+
+/* 11. before / after */
+S('demo','',`<h1>Écoutez la différence</h1>
+<div class="body"><div class="ba">
+<div><p class="hand o">avant : l’enregistrement bruité</p>${player('demo_before','mixed')}</div>
+<div><p class="hand b">après : REAVISE</p>${player('demo_after','light')}</div>
+</div></div>`);
+
+/* 12. why */
+const why=(i,t,x)=>`<div class="card"><span class="wico">${ico(i)}</span><h2>${t}</h2><p class="cap">${x}</p></div>`;
+S('why','',`<h1>Pourquoi ce choix ?</h1>
+<div class="body"><div class="why">
+${why('bulb','Intuitif','Une partie connaît la parole. Une autre s’occupe du bruit.')}
+${why('search','Vérifiable','On teste le modèle de parole seul, puis on règle le curseur.')}
+${why('globe','Généralisable','Aucun bruit vu à l’entraînement, donc aucun bruit n’est nouveau.')}
+</div></div>`);
+
+/* 13. results and perspectives */
+const pt=(i,x,next)=>`<div class="pt${next?' next':''}"><span class="pico">${ico(i)}</span><p>${x}</p></div>`;
+S('results','',`<h1>Résultats et perspectives</h1>
+<div class="body"><div class="row" style="gap:28px;align-items:stretch">
+<div class="card panel" style="border-color:var(--blue)">
+<h2 style="color:var(--blue)">Résultats</h2>
+<div class="pts">${pt('video','Avec les lèvres : mieux qu’avec le son seul')}${pt('globe','Meilleur que les méthodes supervisées face à un bruit jamais vu')}${pt('small','Avec un modèle plus petit et moins de données')}</div>
+</div>
+<div class="card panel">
+<h2 style="color:var(--orange-t)">Perspectives</h2>
+<div class="pts">${pt('bolt','Plus rapide et plus léger, pour les appareils du quotidien',1)}${pt('eyeoff','Robuste quand le visage est en partie caché',1)}${pt('users','De vraies conversations, à plusieurs voix',1)}</div>
+</div>
+</div></div>`);
+
+/* 14. one picture */
+S('picture','',`<h1>Toute l’idée en une image</h1>
+<div class="body" style="gap:20px">
+<div class="dia" style="width:1680px;height:548px">
+<svg viewBox="0 0 1680 548" width="1680" height="548" style="position:absolute;left:0;top:0">
+${zig(10,84,90,12,7,22)}${zig(190,52,80,11,6,-22)}${zig(4,430,76,11,6,-18)}${zig(214,494,66,10,5,14)}
+${bust(134,268,84,.5,{talk:true})}${arcs(224,308,16,3,0,C.blue,6,40,15)}
+<path d="M 286 292 C 340 292 330 140 372 140" fill="none" stroke="${C.muted}" stroke-width="4" stroke-dasharray="3 11" stroke-linecap="round"/>
+<path d="M 286 322 C 340 322 330 410 372 410" fill="none" stroke="${C.muted}" stroke-width="4" stroke-dasharray="3 11" stroke-linecap="round"/>
+<circle cx="416" cy="140" r="40" fill="${C.ink}"/>${ico('mic','x="391" y="115" width="50" height="50" color="#fff"')}
+<circle cx="416" cy="410" r="40" fill="${C.ink}"/>${ico('cam','x="391" y="385" width="50" height="50" color="#fff"')}
+<path d="M 900 140 C 965 140 950 236 1000 236" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/><polygon points="1014,236 996,225 996,247" fill="${C.ink}"/>
+<path d="M 790 410 C 910 410 920 314 1000 314" fill="none" stroke="${C.ink}" stroke-width="5" stroke-linecap="round"/><polygon points="1014,314 996,303 996,325" fill="${C.ink}"/>
+${arrow(1342,275,1386,275,C.ink,5,14)}
+</svg>
+<p class="hand o nw" style="position:absolute;left:486px;top:8px">son : voix + bruit</p>
+<div class="card" style="position:absolute;left:486px;top:66px;width:404px;height:148px;padding:14px;border-radius:20px">${wave({w:372,h:116,kind:'mixed'})}</div>
+<div style="position:absolute;left:486px;top:288px">${vid({w:290,slot:'video_picture',mute:true})}</div>
+<p class="hand r nw" style="position:absolute;left:796px;top:452px">vidéo des lèvres</p>
+<div class="box" style="left:1018px;top:128px;width:316px;height:294px;padding:18px"><h2 style="color:var(--blue)">REAVISE</h2><span class="tag" style="background:var(--blue)">modèle de parole</span><span class="tag" style="background:var(--orange-t)">modèle de bruit</span><span class="tag" style="background:var(--ink)">un seul curseur</span></div>
+<p class="hand b nw" style="position:absolute;left:1392px;top:112px">une voix propre</p>
+<div class="out" style="position:absolute;left:1392px;top:172px;width:288px;padding:22px;gap:16px;align-items:center">${wave({w:244,h:110,kind:'light'})}${chip('picture_voice','',{mini:true,light:true})}</div>
+</div>
+<p class="hand center" style="color:var(--muted)">images à explorer : l’ami qui lit sur les lèvres, le sculpteur, le curseur de mixage</p>
+</div>`);
+
+/* =====================================================================
+   4. BUILD, NAVIGATE, ANIMATE
+   ===================================================================== */
+const stage=document.getElementById('stage'),dots=document.getElementById('dots');
+slides.forEach((s,i)=>{const el=document.createElement('section');el.className='slide '+s.cls;el.id='s-'+s.id;el.innerHTML=s.html;stage.appendChild(el);
+  const d=document.createElement('i');d.title='Diapositive '+(i+1);d.onclick=()=>go(i);dots.appendChild(d)});
+const els=[...stage.children];let cur=0;
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(${(innerWidth-1920*s)/2}px,${(innerHeight-1080*s)/2}px) scale(${s})`}
+function go(i){i=Math.max(0,Math.min(els.length-1,i));els[cur].classList.remove('active');cur=i;els[cur].classList.add('active');
+  [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===cur));document.getElementById('count').textContent=(cur+1)+' / '+els.length;
+  try{history.replaceState(null,'','#'+(cur+1))}catch(e){}stopAll();syncScreens()}
+addEventListener('resize',fit);fit();
+addEventListener('keydown',e=>{const t=e.target;
+  if(t.matches&&t.matches('input[type=range]')&&e.key.startsWith('Arrow'))return;
+  if(t.matches&&t.matches('button,video')&&(e.key===' '||e.key==='Enter'))return;
+  if(e.key==='Escape'){document.getElementById('panel').hidden=true;return}
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(els.length-1);
+  else if(e.key==='f'||e.key==='F')fullscreen();else if(e.key==='m'||e.key==='M')togglePanel()});
+document.getElementById('bPrev').onclick=()=>go(cur-1);
+document.getElementById('bNext').onclick=()=>go(cur+1);
+document.getElementById('bFull').onclick=fullscreen;
+document.getElementById('bMedia').onclick=togglePanel;
+function fullscreen(){const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(d.requestFullscreen)d.requestFullscreen().catch(()=>{})}
+let tx=null;addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>70&&!e.target.closest('input'))go(cur+(dx<0?1:-1))});
+
+/* ---------- animated drawings */
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LOOP=6000;
+// cover: the noise is swept away, left to right
+const CN=110,cSp=env(CN,[[.02,.14],[.18,.33],[.40,.52],[.57,.70],[.74,.86],[.89,.99]],3).map(v=>v*.85),cNz=nenv(CN,11);
+document.getElementById('coverwave').innerHTML=bars(0,175,1920,cNz,C.orange,150,.74,null,'cn')+bars(0,175,1920,cSp,C.lblue,150,.38);
+const cRects=[...document.querySelectorAll('#coverwave .cn')];
+function coverTick(now){const u=(now%9000)/9000;const front=u<.62?-.1+u/.62*1.25:2;const back=u>.9?(u-.9)/.1:0;
+  cRects.forEach((r,i)=>{const x=(i+.5)/CN;let k=Math.max(0,Math.min(1,(x-front)/.09));if(u>=.62)k=back;const hh=Math.max(0,cNz[i]*150*k);r.setAttribute('y',175-hh);r.setAttribute('height',2*hh)})}
+// step 1: static turns into speech
+const DN=44,dSp=env(DN,SEG,5);let dRnd=nenv(DN,1,.25),dLast=0;
+document.getElementById('diff').innerHTML=`<g id="diffg">${bars(0,105,456,dRnd,'#9AA5B8',96)}</g>`;
+const dG=document.getElementById('diffg'),dRects=[...dG.children],dP=document.getElementById('diffp');
+function diffTick(now){const u=(now%5200)/5200,tn=Math.max(0,1-u/.62);if(now-dLast>90){dLast=now;const r=rng(Math.floor(now));dRnd=dRnd.map(()=>.25+.75*r())}
+  dRects.forEach((el,i)=>{const hh=Math.max(2.5,((1-tn)*dSp[i]+tn*dRnd[i])*96);el.setAttribute('y',105-hh);el.setAttribute('height',2*hh);el.setAttribute('fill',mixColor('#9AA5B8',C.blue,1-tn))});
+  dP.style.width=Math.min(100,u/.62*100)+'%'}
+// step 2: the balance knob
+const ON=84,oTrue=env(ON,SEG,41),oAlt=env(ON,SEG,77,1.3),oNz=nenv(ON,48);
+const outw=document.getElementById('outw');outw.innerHTML=bars(0,110,838,oNz,C.orange,100,.72,null,'on')+bars(0,110,838,oTrue,C.lblue,100,.46,null,'os');
+const oN=[...outw.querySelectorAll('.on')],oS=[...outw.querySelectorAll('.os')],knob=document.getElementById('knob'),kmsg=document.getElementById('knobmsg');
+function knobDraw(){const w=knob.value/100,wt=Math.min(1,w*1.7),leak=Math.pow(Math.max(0,(w-.5)*2),1.3)*.85;
+  oS.forEach((el,i)=>{const hh=Math.max(2.5,(wt*oTrue[i]+(1-wt)*oAlt[i])*100);el.setAttribute('y',110-hh);el.setAttribute('height',2*hh)});
+  oN.forEach((el,i)=>{const hh=oNz[i]*100*leak;el.setAttribute('y',110-hh);el.setAttribute('height',2*hh)});
+  kmsg.textContent=w<.3?'très propre, mais moins fidèle':w>.7?'fidèle, mais le bruit revient':'le bon équilibre'}
+knob.addEventListener('input',knobDraw);knobDraw();
+function pop(now){const u=(now%1900)/1900;return u<.3?0:Math.pow(Math.sin(Math.PI*(u-.3)/.7),.8)}
+function tick(now){const T=still?.52:(now%LOOP)/LOOP,s=els[cur];
+  s.querySelectorAll('.talk').forEach(g=>{const o=g.dataset.mode==='pop'?(still?.6:pop(now)):opn(T),w=+g.dataset.w;g.children[0].setAttribute('ry',w*(.17+.25*o));g.children[1].setAttribute('ry',Math.max(1.4,w*(.015+.19*o)))});
+  s.querySelectorAll('.playhead').forEach(p=>p.style.left=(T*100)+'%');
+  s.querySelectorAll('.scrub i').forEach(p=>p.style.width=(T*100)+'%');
+  if(s.id==='s-cover')coverTick(still?5000:now);else if(s.id==='s-step1')diffTick(still?5000:now);
+  if(!still)requestAnimationFrame(tick)}
+requestAnimationFrame(tick);
+
+/* =====================================================================
+   5. MEDIA: find the files, play them, let you pick others
+   ===================================================================== */
+const state={},audioEl={};let pickKey=null;
+const isVideoFile=(type,name)=>/^video\//i.test(type||'')||/\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(name||'');
+/* load a file far enough to know whether the browser can play it and whether it can show a picture */
+function probeUrl(url,wait=2500){return new Promise(res=>{const v=document.createElement('video');v.preload='auto';v.muted=true;v.playsInline=true;let done=false,meta=false,t2;
+  const pic=()=>v.videoWidth>0||!!(v.videoTracks&&v.videoTracks.length);
+  const fin=ok=>{if(done)return;done=true;clearTimeout(to);clearTimeout(t2);v.onloadedmetadata=v.onloadeddata=v.onerror=null;const r=ok?{url,hasVideo:pic()}:null;try{v.removeAttribute('src');v.load()}catch(e){}res(r)};
+  const to=setTimeout(()=>fin(meta),wait);
+  v.onloadedmetadata=()=>{meta=true;if(pic())fin(true);else t2=setTimeout(()=>fin(true),900)};
+  v.onloadeddata=()=>fin(true);v.onerror=()=>fin(false);v.src=url})}
+async function probe(key){const b=MEDIA[key].file,c=/\.[a-z0-9]+$/i.test(b)?[b]:EXT.map(e=>b+'.'+e);
+  for(const name of c){const r=await probeUrl(MEDIA_DIR+name);if(r){r.name=MEDIA_DIR+name;r.isVideoFile=isVideoFile('',name);return r}}return null}
+function setMedia(key,info){xStop();if(audioEl[key]){audioEl[key].pause();delete audioEl[key]}state[key]=info;refresh(key)}
+function refresh(key){const m=state[key];
+  document.querySelectorAll(`[data-slot="${key}"]`).forEach(el=>{const ui=el.dataset.ui;
+    if(ui==='chip'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'plus');const l=el.querySelector('.lab');if(l)l.textContent=m?el.dataset.label:'ajouter un son';
+      el.title=m?'Lire':`Choisissez un fichier son ou vidéo, ou enregistrez-le sous ${MEDIA_DIR}${MEDIA[key].file}.wav`;el.setAttribute('aria-label',m?'Lire : '+MEDIA[key].what:'Ajouter un fichier : '+MEDIA[key].what)}
+    else if(ui==='screen'){const v=el.querySelector('video'),ok=m&&m.hasVideo;el.classList.toggle('has',!!ok);if(ok){if(v.dataset.url!==m.url){v.dataset.url=m.url;v.src=m.url}}else{v.removeAttribute('src');delete v.dataset.url}}
+    else if(ui==='run'){el.classList.toggle('empty',!m);el.classList.remove('playing');el.querySelector('.ico').innerHTML=ico(m?'play':'plus');el.querySelector('.rp i').style.width='0';
+      el.title=m?'Lire':`Choisissez un fichier, déposez-le ici, ou enregistrez-le sous ${MEDIA_DIR}${MEDIA[key].file}.wav (ou .mp4)`;el.setAttribute('aria-label',(m?'Lire : ':'Ajouter un fichier : ')+MEDIA[key].what)}
+    else if(ui==='xscreen'){const v=el.querySelector('video'),ok=!!m&&(m.hasVideo||m.isVideoFile);el.classList.toggle('empty',!ok);el.classList.toggle('nopic',ok&&!m.hasVideo);if(ok&&!xNow){setSrc(v,m.url);v.muted=true;xTag('mute','entrée muette')}}
+    else if(ui==='player'){const v=el.querySelector('video');el.classList.toggle('empty',!m);el.classList.toggle('audio',!!m&&!m.hasVideo);if(m)v.src=m.url;else v.removeAttribute('src')}});
+  drawPanel();syncScreens()}
+function syncScreens(){document.querySelectorAll('.screen>video').forEach(v=>{if(v.dataset.url&&v.closest('.slide').classList.contains('active'))v.play().catch(()=>{});else v.pause()})}
+function stopAll(){xStop();Object.values(audioEl).forEach(a=>a.pause());document.querySelectorAll('.player video').forEach(v=>v.pause())}
+function getAudio(key){let a=audioEl[key];if(!a){a=audioEl[key]=new Audio(state[key].url);a.onplay=()=>mark(key,true);a.onpause=a.onended=()=>mark(key,false)}return a}
+function setSrc(v,url){if(v.dataset.url!==url){v.dataset.url=url;v.src=url}}
+/* real examples: a run is a sound (played over the muted input video) or a video that already carries the generated sound */
+let xNow=null;
+const xVideo=()=>document.querySelector('.xscreen video');
+function xTag(icon,text){const t=document.getElementById('xtag');t.innerHTML=ico(icon)+'<span>'+text+'</span>'}
+const xScreen=()=>document.querySelector('.xscreen');
+function xOn(on){xScreen().classList.toggle('on',on);document.getElementById('xplay').innerHTML=ico(on?'pause':'play')}
+function xStop(){const v=xVideo();if(v)v.pause();if(xNow){xNow.media.pause();const el=xNow.el;el.classList.remove('playing');const ic=el.querySelector('.ico');if(ic)ic.innerHTML=ico('play')}xNow=null;if(xScreen())xOn(false)}
+/* the play button on the video: the input video alone, without sound */
+function xToggle(){if(xNow){stopAll();return}const m=state.silent;if(!m||!(m.hasVideo||m.isVideoFile))return;stopAll();
+  const v=xVideo();setSrc(v,m.url);v.muted=true;try{v.currentTime=0}catch(e){}v.play().catch(()=>{});xTag('mute','entrée muette');
+  document.querySelectorAll('.run .rp i').forEach(i=>i.style.width='0');xNow={key:'silent',media:v,el:xScreen()};xOn(true)}
+/* a run: its sound over the muted input video, or its own video if the file is one */
+function playRun(el){const key=el.dataset.slot,m=state[key];if(!m){pick(key);return}
+  const was=el.classList.contains('playing');stopAll();if(was)return;
+  const v=xVideo();let media,onScreen=false;
+  if(el.dataset.with){const sil=state.silent;
+    if(m.hasVideo){setSrc(v,m.url);v.muted=false;media=v;onScreen=true}
+    else{if(sil&&(sil.hasVideo||sil.isVideoFile)){setSrc(v,sil.url);v.muted=true;try{v.currentTime=0}catch(e){}v.play().catch(()=>{});onScreen=true}media=getAudio(key)}
+    xTag('audio',el.dataset.label)
+  }else media=getAudio(key);
+  try{media.currentTime=0}catch(e){}media.play().catch(()=>{});
+  document.querySelectorAll('.run .rp i').forEach(i=>i.style.width='0');
+  xNow={key,media,el};el.classList.add('playing');el.querySelector('.ico').innerHTML=ico('pause');if(onScreen)xOn(true)}
+(()=>{const v=xVideo();if(!v)return;
+  const check=()=>{const m=state.silent;if(v.videoWidth>0){xScreen().classList.remove('nopic');if(m&&m.url===v.dataset.url&&!m.hasVideo){m.hasVideo=true;m.unplayable=false;drawPanel()}}
+    if(v.paused&&v.currentTime===0&&v.readyState>=1){try{v.currentTime=0.01}catch(e){}}};
+  v.addEventListener('loadedmetadata',check);v.addEventListener('loadeddata',check);v.addEventListener('resize',check)})();
+setInterval(()=>{const v=xVideo(),xb=document.getElementById('xbar');if(v&&xb&&v.duration&&xScreen().classList.contains('on'))xb.style.width=(v.currentTime/v.duration*100)+'%';
+  if(!xNow)return;const md=xNow.media,bar=xNow.el.querySelector('.rp i');
+  if(md.ended){if(bar)bar.style.width='100%';xStop();return}
+  if(bar&&md.duration)bar.style.width=(md.currentTime/md.duration*100)+'%'},80);
+function mark(key,on){document.querySelectorAll(`[data-slot="${key}"][data-ui="chip"]`).forEach(c=>{c.classList.toggle('playing',on);c.querySelector('.ico').innerHTML=ico(on?'pause':'play')})}
+function toggle(key,chipEl){const m=state[key];if(!m){pick(key);return}
+  const a=getAudio(key);
+  if(a.paused){stopAll();a.currentTime=0;const sv=chipEl&&chipEl.dataset.sync&&document.querySelector(`.slide.active .screen[data-slot="${chipEl.dataset.sync}"].has video`);if(sv){try{sv.currentTime=0}catch(e){}sv.play().catch(()=>{})}a.play().catch(()=>{})}else a.pause()}
+function pick(key){pickKey=key;const fi=document.getElementById('file');fi.value='';fi.click()}
+async function useFile(key,file,name,src='picked'){if(!file||!MEDIA[key])return;const url=URL.createObjectURL(file),nm=name||file.name||key;const r=await probeUrl(url,8000);
+  const info={url,hasVideo:!!(r&&r.hasVideo),isVideoFile:isVideoFile(file.type,nm),unplayable:!r,name:nm,blob:file,src};
+  setMedia(key,info);if(src==='picked'){dirty=true;saveState(info.isVideoFile&&!info.hasVideo?noPicture(nm):(!info.isVideoFile&&VIDEO_ONLY.includes(key)?`${nm} est un fichier son ; il faut une vidéo ici.`:''))}}
+const VIDEO_ONLY=['silent','video_cover','video_camera','video_step1','video_picture'];
+const noPicture=nm=>`Ce navigateur ne peut pas afficher l’image de ${nm}. Convertissez-la en H.264 (yuv420p), puis choisissez-la de nouveau.`;
+/* ---------- keep the chosen files: download a copy of this page with them stored inside */
+let dirty=false;
+function saveState(text){const b=document.getElementById('bSave');b.classList.toggle('dirty',dirty);document.getElementById('ui').classList.toggle('attn',dirty);
+  document.getElementById('saveMsg').textContent=text||(dirty?'Fichiers choisis, pas encore enregistrés':'');drawPanel()}
+const readData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('lecture d’un fichier impossible'));r.readAsDataURL(b)});
+function dataToBlob(d){const i=d.indexOf(','),mime=d.slice(5,i).replace(';base64',''),bin=atob(d.slice(i+1)),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:mime})}
+async function saveCopy(){const btn=document.getElementById('bSave');btn.disabled=true;saveState('Préparation de la copie…');
+  try{const out={};let n=0,bytes=0,left=0;
+    for(const[k,m]of Object.entries(state)){if(!m)continue;let b=m.blob;
+      if(!b){try{b=await(await fetch(m.url)).blob()}catch(e){b=null}}
+      if(b){out[k]={n:m.name||k,d:await readData(b)};n++;bytes+=b.size}else left++}
+    const A='/*EMBED-'+'START*/',B='/*EMBED-'+'END*/',i=PRISTINE.indexOf(A),j=PRISTINE.indexOf(B,i);
+    if(i<0||j<0)throw new Error('cette page a été modifiée et ne peut pas contenir de fichiers');
+    const page=new Blob([PRISTINE.slice(0,i),A,'const EMBED=',JSON.stringify(out),';',PRISTINE.slice(j)],{type:'text/html'});
+    let name=decodeURIComponent(location.pathname.split('/').pop()||'')||'reavise-intro.html';if(!/\.html?$/i.test(name))name='reavise-intro.html';
+    if(!/-with-media\.html?$/i.test(name))name=name.replace(/\.html?$/i,'-with-media.html');
+    const a=document.createElement('a');a.href=URL.createObjectURL(page);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),120000);
+    for(const m of Object.values(state))if(m&&m.src==='picked')m.src='saved';
+    dirty=false;saveState(`${name} téléchargé, avec ${n} fichier${n===1?'':'s'} à l’intérieur (${(bytes/1048576).toFixed(1)} Mo). Ouvrez cette copie la prochaine fois.`+(left?` ${left} fichier${left===1?'':'s'} du dossier media n’a pas pu être copié et a encore besoin de ce dossier.`:''))}
+  catch(e){saveState('Enregistrement impossible : '+e.message)}
+  btn.disabled=false}
+document.getElementById('bSave').onclick=saveCopy;
+/* bring in the files stored in an earlier saved copy of this deck */
+async function importCopy(file){if(!file)return;saveState('Lecture de '+file.name+'…');
+  const t=await file.text(),A='/*EMBED-'+'START*/const EMBED=',B=';/*EMBED-'+'END*/',i=t.indexOf(A),j=t.indexOf(B,i);let data=null;
+  if(i>=0&&j>=0){try{data=JSON.parse(t.slice(i+A.length,j))}catch(e){}}
+  if(!data||!Object.keys(data).length){saveState('Aucun fichier trouvé dans '+file.name+'.');return}
+  const old=!t.includes('demo_before:');let n=0;
+  for(const[k,e]of Object.entries(data)){let key=k,blob;try{blob=dataToBlob(e.d)}catch(err){continue}
+    if(old&&isVideoFile(blob.type,e.n)){if(k==='noisy')key='demo_before';else if(k==='enhanced')key='demo_after'}
+    if(MEDIA[key]){await useFile(key,blob,e.n,'picked');n++}}
+  saveState(n?`${n} fichier${n===1?'':'s'} récupéré${n===1?'':'s'} depuis ${file.name}. Cliquez sur « Enregistrer une copie avec mes fichiers » pour les garder dans cette version.`:'Aucun fichier correspondant trouvé dans '+file.name+'.')}
+document.getElementById('imp').onchange=e=>{importCopy(e.target.files[0]);e.target.value=''};
+document.getElementById('file').onchange=e=>useFile(pickKey,e.target.files[0]);
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pick]');if(p){e.stopPropagation();pick(p.dataset.pick);return}
+  const xs=e.target.closest('.xscreen');if(xs&&!xs.classList.contains('empty')){xToggle();return}
+  const r=e.target.closest('.run');if(r){playRun(r);return}
+  const c=e.target.closest('.chip');if(c)toggle(c.dataset.slot,c)});
+document.addEventListener('play',e=>{if(e.target.matches&&e.target.matches('.player video'))Object.values(audioEl).forEach(a=>a.pause())},true);
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();const t=e.target.closest&&e.target.closest('[data-slot],[data-pick]');if(t)useFile(t.dataset.slot||t.dataset.pick,e.dataTransfer.files[0])});
+
+const panel=document.getElementById('panel');
+function drawPanel(){panel.firstElementChild.innerHTML=`<h3>Fichiers son et vidéo</h3>
+<p>Créez un dossier nommé <code>media</code> à côté de ce fichier HTML et enregistrez-y vos fichiers sous ces noms. Extensions acceptées : ${EXT.map(e=>'.'+e).join(' ')}. </p><p style="margin-top:8px"><b>Ou gardez-les dans la page :</b> choisissez les fichiers ici ou déposez-les sur les diapositives, puis cliquez sur <button onclick="saveCopy()">Enregistrer une copie avec mes fichiers</button>. Un nouveau fichier HTML est téléchargé avec ces fichiers à l’intérieur ; ouvrez ensuite cette copie. Sans cette étape, les fichiers choisis sont perdus à la fermeture de la page. De grosses vidéos donnent un gros fichier.</p>
+<table><tr><th>Fichier à enregistrer</th><th>Contenu</th><th>Utilisé sur</th><th>État</th><th></th></tr>${Object.entries(MEDIA).map(([k,m])=>`<tr><td><code>${MEDIA_DIR}${m.file}</code></td><td>${m.what}</td><td>${m.where}</td><td class="${state[k]&&!(state[k].isVideoFile&&!state[k].hasVideo)?'ok':'no'}">${!state[k]?'absent':(state[k].src==='saved'?'contenu dans cette page':state[k].src==='picked'?'choisi, pas encore enregistré':'trouvé dans le dossier media')+(state[k].isVideoFile&&!state[k].hasVideo?' : le navigateur ne peut pas afficher son image':'')}</td><td><button data-pick="${k}">Choisir un fichier</button></td></tr>`).join('')}</table>
+<p style="margin-top:14px"><b>Vous venez d’une version précédente ?</b> <button onclick="document.getElementById('imp').click()">Récupérer les fichiers d’une copie enregistrée</button> Choisissez votre ancien fichier <code>…-with-media.html</code> (la version anglaise fonctionne aussi) ; ses fichiers sont placés aux bons endroits ici.</p>
+<p style="margin-top:14px">Touches : flèches pour avancer, F pour le plein écran, M pour ouvrir ou fermer cette liste. <button onclick="document.getElementById('panel').hidden=true">Fermer</button></p>`}
+function togglePanel(){panel.hidden=!panel.hidden}
+panel.addEventListener('click',e=>{if(e.target===panel)panel.hidden=true});
+drawPanel();
+Object.keys(MEDIA).forEach(k=>{refresh(k);
+  if(EMBED[k]){try{useFile(k,dataToBlob(EMBED[k].d),EMBED[k].n,'saved')}catch(e){}}
+  else if(MEDIA_FILES[k]){const url=MEDIA_DIR+MEDIA_FILES[k];probeUrl(url).then(r=>{if(r&&!state[k]){r.name=url;r.isVideoFile=isVideoFile('',url);r.src='folder';setMedia(k,r)}})}});
+go(Math.max(0,(parseInt(location.hash.slice(1))||1)-1));
+</script></body></html>
