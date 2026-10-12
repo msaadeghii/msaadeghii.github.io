@@ -2,7 +2,7 @@
 layout: page
 title: projects
 permalink: /projects/
-description: 
+description: Robust and efficient audio-visual speech enhancement
 nav: true
 nav_order: 3
 display_categories: [work, fun]
@@ -20,24 +20,34 @@ horizontal: false
 </div>
 
 <div style="text-align: justify">
-<b>REAVISE</b> (2023-2026) is a project funded by the <i>Agence Nationale de la Recherche</i> (<a href="https://anr.fr/">ANR</a>) via the <a href="https://anr.fr/en/call-for-proposals-details/call/programme-jeunes-chercheuses-et-jeunes-chercheurs-jcjc/">JCJC program</a>. The project aims to develop a <i>unified audio-visual speech enhancement (AVSE) framework</i> that robustly integrates acoustic data (noisy speech signal) with accompanying visual information (speaker’s lip movements) in order to recover an intelligible, high-quality estimate of the clean speech signal with <i>low computational power</i> and <i>independently of the acoustic and visual noise environments</i>.
+<b>REAVISE</b> (2023-2026, grant ANR-22-CE23-0026) is a project funded by the <i>Agence Nationale de la Recherche</i> (<a href="https://anr.fr/">ANR</a>) via the <a href="https://anr.fr/en/call-for-proposals-details/call/programme-jeunes-chercheuses-et-jeunes-chercheurs-jcjc/">JCJC program</a>. The project aims to develop a <i>unified audio-visual speech enhancement (AVSE) framework</i> that robustly integrates acoustic data (noisy speech signal) with accompanying visual information (speaker’s lip movements) in order to recover an intelligible, high-quality estimate of the clean speech signal with <i>low computational power</i> and <i>independently of the acoustic and visual noise environments</i>.
 </div>
+
+- [REAVISE on the ANR website](https://anr.fr/Project-ANR-22-CE23-0026)
 
 - Interactive presentation: [English]({{ "/reavise/" | relative_url }}) · [Français]({{ "/reavise/fr/" | relative_url }})
 
 - [A quick introduction to REAVISE](/files/reavise.pdf){:target="\_blank" rel="noopener"}
 
-## Job opportunities
+## Project publications
 
-<!-- <p style="font-size:12pt">
-- <span style="color: blue"><b>PhD position</b></span>: See the project description & how to apply <a href="https://jobs.inria.fr/public/classic/en/offres/2023-05881">here</a>.
-</p> -->
+Publications associated with REAVISE are also available in the [HAL–ANR collection](https://anr.hal.science/search/index/?q=*&anrProjectReference_s=ANR-22-CE23-0026).
 
-<p style="font-size:11pt">
-- <span style="color: blue"><b>Postdoc/research engineer</b></span>: If you hold [or are about to get] a PhD degree, in audio/speech processing, machine learning, computer vision, or related fields, or you hold a Master's degree, please email me with your CV, motivation letter, and transcripts attached.
-</p>
+1. Colombe Mboungou, Mostafa Sadeghi, Jean-Eudes Ayilo and Romain Serizel, **Audio-visual Contrastive Alignment for Diffusion-based Visual-conditioned Speech Enhancement**, INTERSPEECH, 2026. [[Paper](https://hal.science/hal-05655180)]
 
-## Related publications
+2. Jean-Eudes Ayilo, Mostafa Sadeghi, Romain Serizel and Xavier Alameda-Pineda, **Diffusion-based Frameworks for Unsupervised Speech Enhancement**, IEEE Transactions on Audio, Speech and Language Processing, 2026. [[Paper](https://hal.science/hal-05458941)] [[DOI](https://doi.org/10.1109/TASLPRO.2026.3703191)]
+
+3. Mostafa Sadeghi, Jean-Eudes Ayilo, Romain Serizel and Xavier Alameda-Pineda, **Posterior Transition Modeling for Unsupervised Diffusion-Based Speech Enhancement**, IEEE Signal Processing Letters, 2025. [[Paper](https://hal.science/hal-05135495)] [[DOI](https://doi.org/10.1109/LSP.2025.3583967)]
+
+4. Jean-Eudes Ayilo, Mostafa Sadeghi, Romain Serizel and Xavier Alameda-Pineda, **Diffusion-based Unsupervised Audio-visual Speech Enhancement**, ICASSP, 2025. [[Paper](https://hal.science/hal-04718254)]
+
+5. Berné Nortier, Mostafa Sadeghi and Romain Serizel, **Unsupervised speech enhancement with diffusion-based generative models**, ICASSP, 2024. [[Paper](https://hal.science/hal-04210707)]
+
+6. Mostafa Sadeghi and Romain Serizel, **Posterior sampling algorithms for unsupervised speech enhancement with recurrent variational autoencoder**, ICASSP, 2024. [[Paper](https://hal.science/hal-04210679)]
+
+7. Jean-Eudes Ayilo, Mostafa Sadeghi and Romain Serizel, **Diffusion-based speech enhancement with a weighted generative-supervised learning loss**, ICASSP, 2024. [[Paper](https://hal.science/hal-04210729)]
+
+## Earlier related work
 
 [1] Z. Kang, M. Sadeghi, R. Horaud, and X. Alameda-Pineda, **Expression-preserving face frontalization improves visually assisted speech processing**, International Journal of Computer Vision (IJCV), 2022. [[Paper](https://hal.archives-ouvertes.fr/hal-03902610){:target="\_blank" rel="noopener"}]
 
