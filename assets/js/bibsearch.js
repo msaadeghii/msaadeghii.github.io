@@ -1,12 +1,16 @@
 import { highlightSearchTerm } from "./highlight-search-term.js";
 
 document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("bibsearch");
+  if (!input) return;
+
   // actual bibsearch logic
   const filterItems = (searchTerm) => {
-    document.querySelectorAll(".bibliography, .unloaded").forEach((element) => element.classList.remove("unloaded"));
+    searchTerm = searchTerm.toLowerCase().trim();
+    document.querySelectorAll(".publications .unloaded").forEach((element) => element.classList.remove("unloaded"));
 
     // highlight-search-term
-    if (CSS.highlights) {
+    if (typeof CSS !== "undefined" && CSS.highlights && typeof Highlight !== "undefined") {
       const nonMatchingElements = highlightSearchTerm({ search: searchTerm, selector: ".bibliography > li" });
       if (nonMatchingElements == null) {
         return;
@@ -16,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     } else {
       // Simply add unloaded class to all non-matching items if Browser does not support CSS highlights
-      document.querySelectorAll(".bibliography > li").forEach((element, index) => {
+      document.querySelectorAll(".bibliography > li").forEach((element) => {
         const text = element.innerText.toLowerCase();
         if (text.indexOf(searchTerm) == -1) {
           element.classList.add("unloaded");
@@ -35,7 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
           const totalSiblings = ol.querySelectorAll(":scope > li");
 
           if (unloadedSiblings.length === totalSiblings.length) {
-            ol.previousElementSibling.classList.add("unloaded"); // Add the '.unloaded' class to the previous grouping element (e.g. year)
+            // Only hide a subgroup heading, never a preceding list with matching entries.
+            const heading = ol.previousElementSibling;
+            if (heading && /^H[3-6]$/.test(heading.tagName)) heading.classList.add("unloaded");
             ol.classList.add("unloaded"); // Add the '.unloaded' class to the OL itself
           } else {
             hideFirstGroupingElement = false; // there is at least some visible entry, don't hide the first grouping element
@@ -50,18 +56,24 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   };
 
+  let timeoutId;
   const updateInputField = () => {
-    const hashValue = decodeURIComponent(window.location.hash.substring(1)); // Remove the '#' character
-    document.getElementById("bibsearch").value = hashValue;
+    clearTimeout(timeoutId);
+    let hashValue = window.location.hash.substring(1);
+    try {
+      hashValue = decodeURIComponent(hashValue);
+    } catch {
+      // Keep malformed URL fragments searchable instead of stopping the script.
+    }
+    input.value = hashValue;
     filterItems(hashValue);
   };
 
-  // Sensitive search. Only start searching if there's been no input for 300 ms
-  let timeoutId;
-  document.getElementById("bibsearch").addEventListener("input", function () {
+  // Only start searching if there's been no input for 300 ms.
+  input.addEventListener("input", function () {
     clearTimeout(timeoutId); // Clear the previous timeout
-    const searchTerm = this.value.toLowerCase();
-    timeoutId = setTimeout(filterItems(searchTerm), 300);
+    const searchTerm = this.value;
+    timeoutId = setTimeout(() => filterItems(searchTerm), 300);
   });
 
   window.addEventListener("hashchange", updateInputField); // Update the filter when the hash changes
