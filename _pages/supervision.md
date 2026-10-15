@@ -58,7 +58,28 @@ nav_order: 4
     </tbody>
 </table>
 
-### Masters (M2) students
+### Research engineers
+
+<table>
+    <thead>
+        <tr>
+            <th>Period</th>
+            <th>Name</th>
+            <th>Project</th>
+            <th>Co-supervisor</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>2024-2026</td>
+            <td><strong>Colombe Mboungou</strong></td>
+            <td><em>Contrastive Learning for Audio-visual Speech Enhancement</em></td>
+            <td>Romain Serizel</td>
+        </tr>
+    </tbody>
+</table>
+
+### Master's (M2) students
 
 <table>
     <thead>
@@ -72,6 +93,14 @@ nav_order: 4
         </tr>
     </thead>
     <tbody>
+        <tr>
+            <td>2026</td>
+            <td><strong>Ahmed Traore</strong></td>
+            <td>Université Paris-Saclay</td>
+            <td><em>Comparative Analysis of Diffusion Models and Variational Autoencoders as Data-driven Priors for Speech Enhancement</em></td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
         <tr>
             <td>2023</td>
             <td><strong>Louis Lalay</strong></td>
@@ -131,7 +160,7 @@ nav_order: 4
     </tbody>
 </table>
 
-### Masters (M1) students
+### Master's (M1) students
 
 <table>
     <thead>
@@ -144,6 +173,13 @@ nav_order: 4
         </tr>
     </thead>
     <tbody>
+        <tr>
+            <td>2026</td>
+            <td><strong>Tuan Nam Pham</strong></td>
+            <td>Data Science Tech Institute</td>
+            <td><em>Contrastive Multimodal Pretraining for Noise-aware Diffusion-based Audio-visual Speech Enhancement</em></td>
+            <td>--</td>
+        </tr>
         <tr>
             <td>2024</td>
             <td><strong>Arthur Gilles</strong></td>
